@@ -17,35 +17,32 @@ module VBOX
 
     def banner
       bname = File.basename(__FILE__)
-      puts "USAGE:"
-      puts "\t#{bname} [options]                           - list VMs"
-      puts "\t#{bname} [options] <vm_name>                 - show VM params"
-      puts "\t#{bname} [options] <vm_name> <param>=<value> - change VM params (name, cpus, usb, etc)"
-      puts "\t#{bname} [options] <vm_name> <command>       - make some action (start, reset, etc) on VM"
+      r = []
+      r <<  "USAGE:"
+      r <<  "\t#{bname} [options]                           - list VMs"
+      r <<  "\t#{bname} [options] <vm_name>                 - show VM params"
+      r <<  "\t#{bname} [options] <vm_name> <param>=<value> - change VM params (name, cpus, usb, etc)"
+      r <<  "\t#{bname} [options] <vm_name> <command>       - make some action (start, reset, etc) on VM"
 
-      puts 
-      puts "COMMANDS:"
+      r <<  ""
+      r <<  "COMMANDS:"
       (COMMANDS+['snapshots']).sort.each do |c|
-        puts "\t#{c}"
+        r <<  "\t#{c}"
       end
-
-      puts 
-      puts "OPTIONS:"
-#      puts "\t-h, --help      - show this help"
-#      puts "\t-n, --dry-run   - do not change anything, just print commands to be invoked"
-#      puts "\t-v, --verbose   - increase verbosity"
-#      puts "\t-m, --multiple  - assume <vm_name> is a wildcard, and run on multiple VMs"
-#      puts "\t-N, --number- assume <vm_name> is a wildcard, and run on multiple VMs"
+      r <<  ""
+      r <<  "OPTIONS:"
+      r.join("\n")
     end
 
     def process
       @options = {}
       optparser = OptionParser.new do |opts|
-        #opts.banner = "USAGE:\n"
-        #opts.banner << "foo"
-        opts.separator "foo"
-        opts.separator "bar"
+        opts.banner = banner
 
+        opts.on "-h", "--help", "show this message" do
+          puts optparser.help
+          exit
+        end
         opts.on "-m", "--multiple", "assume <vm_name> is a wildcard, and run on multiple VMs" do
           @options[:multiple] = true
         end
@@ -56,37 +53,18 @@ module VBOX
           @options[:verbose] ||= 0
           @options[:verbose] += 1
         end
-        opts.on "-N", "--number N", Integer, "clone: make N clones" do |x|
-          @options[:number] = x
+        opts.on "-c", "--clones N", Integer, "clone: make N clones" do |x|
+          @options[:clones] = x
+        end
+        a = 'new last take make'.split.map{ |x| [x, x.upcase] }.flatten
+        opts.on "-snapshot", "--snapshot MODE", a, "clone: use LAST shapshot or make NEW" do |x|
+          @options[:snapshot] = x.downcase
+        end
+        opts.on "-H", "--headless", "start: start VM in headless mode" do
+          @options[:headless] = true
         end
       end
       @argv = optparser.parse(@argv)
-
-#      @argv.each do |arg|
-#        if arg[0,2] == '--'
-#          k,v = arg.sub(/^-+/,'').split('=',2)
-#          unless OPTIONS.include?(k)
-#            puts "[!] unknown option #{arg}".red
-#            exit 1
-#          end
-#          @options[k] = v || true
-#        elsif arg[0] == '-'
-#          k,v = arg.sub(/^-+/,'').split('=',2)
-#          k.split('').each do |shortopt|
-#            unless longopt = SHORTOPTS[shortopt]
-#              puts "[!] unknown option #{shortopt.inspect}".red
-#              exit 1
-#            end
-#            @options[longopt] = v || true
-#          end
-#        end
-#      end
-#      @argv.delete_if{ |x| x[0] == '-' }
-#
-#      if @options.key?('help')
-#        usage
-#        return
-#      end
 
       @vbox = VBOX::CmdLineAPI.new(@options)
 
@@ -325,11 +303,11 @@ module VBOX
     end
 
     def start name
-      if ENV['DISPLAY'] && !@options['headless']
+      if ENV['DISPLAY'] && !@options[:headless]
         system "VBoxManage", "startvm", name
       else
-        puts "[.] $DISPLAY is not set, assuming --headless".gray unless @options['headless']
-        @options['headless'] = true
+        puts "[.] $DISPLAY is not set, assuming --headless".gray unless @options[:headless]
+        @options[:headless] = true
         system "VBoxManage", "startvm", name, "--type", "headless"
       end
     end
@@ -390,13 +368,13 @@ module VBOX
         args += ["--name", new_vm_name]
       end
 
-      snapshot = case @options['snapshot']
+      snapshot = case @options[:snapshot]
         when 'new', 'take', 'make'
           take_snapshot(old_vm_name, new_vm_name ? {:name => "for #{new_vm_name}"} : {})
         when 'last'
           get_snapshots(old_vm_name).last
         else
-          puts "[!] please gimme --snapshot=last OR --snapshot=new option"
+          puts "[!] please gimme --snapshot=LAST OR --snapshot=NEW option"
           exit 1
         end
       unless snapshot
@@ -409,9 +387,6 @@ module VBOX
       args += ["--snapshot", snapshot.uuid]
 
       system "VBoxManage", "clonevm", old_vm_name, *args
-
-#      puts "#{old_vm_name} -> #{new_vm_name}"
-#      puts "#{_name2macpart(old_vm_name)} -> #{_name2macpart(new_vm_name)}"
 
       get_vm_info(old_vm_name).each do |k,v|
         if k =~ /^macaddress/
