@@ -1,0 +1,448 @@
+#!/usr/bin/env ruby
+require 'awesome_print' # TODO: make optional
+require 'optparse'
+
+module VBOX
+
+  #COMMANDS = %w'start stop pause shutdown save_state'
+  COMMANDS = 'start|pause|resume|reset|poweroff|savestate|acpipowerbutton|acpisleepbutton|clone|delete'.split('|')
+  ALIASES  = {'clonevm'=>'clone', 'destroy'=>'delete', 'rm'=>'delete'}
+  SHORTOPTS= { 'h'=>'help', 'v'=>:verbose, 'n'=>:dry_run, 'm'=>:multiple }
+  OPTIONS  = SHORTOPTS.values + %w'snapshot headless'
+
+  class CLI
+    def initialize argv = ARGV
+      @argv = argv
+    end
+
+    def banner
+      bname = File.basename(__FILE__)
+      puts "USAGE:"
+      puts "\t#{bname} [options]                           - list VMs"
+      puts "\t#{bname} [options] <vm_name>                 - show VM params"
+      puts "\t#{bname} [options] <vm_name> <param>=<value> - change VM params (name, cpus, usb, etc)"
+      puts "\t#{bname} [options] <vm_name> <command>       - make some action (start, reset, etc) on VM"
+
+      puts 
+      puts "COMMANDS:"
+      (COMMANDS+['snapshots']).sort.each do |c|
+        puts "\t#{c}"
+      end
+
+      puts 
+      puts "OPTIONS:"
+#      puts "\t-h, --help      - show this help"
+#      puts "\t-n, --dry-run   - do not change anything, just print commands to be invoked"
+#      puts "\t-v, --verbose   - increase verbosity"
+#      puts "\t-m, --multiple  - assume <vm_name> is a wildcard, and run on multiple VMs"
+#      puts "\t-N, --number- assume <vm_name> is a wildcard, and run on multiple VMs"
+    end
+
+    def process
+      @options = {}
+      optparser = OptionParser.new do |opts|
+        #opts.banner = "USAGE:\n"
+        #opts.banner << "foo"
+        opts.separator "foo"
+        opts.separator "bar"
+
+        opts.on "-m", "--multiple", "assume <vm_name> is a wildcard, and run on multiple VMs" do
+          @options[:multiple] = true
+        end
+        opts.on "-n", "--dry-run", "do not change anything, just print commands to be invoked" do
+          @options[:dry_run] = true
+        end
+        opts.on "-v", "--verbose", "increase verbosity" do
+          @options[:verbose] ||= 0
+          @options[:verbose] += 1
+        end
+        opts.on "-N", "--number N", Integer, "clone: make N clones" do |x|
+          @options[:number] = x
+        end
+      end
+      @argv = optparser.parse(@argv)
+
+#      @argv.each do |arg|
+#        if arg[0,2] == '--'
+#          k,v = arg.sub(/^-+/,'').split('=',2)
+#          unless OPTIONS.include?(k)
+#            puts "[!] unknown option #{arg}".red
+#            exit 1
+#          end
+#          @options[k] = v || true
+#        elsif arg[0] == '-'
+#          k,v = arg.sub(/^-+/,'').split('=',2)
+#          k.split('').each do |shortopt|
+#            unless longopt = SHORTOPTS[shortopt]
+#              puts "[!] unknown option #{shortopt.inspect}".red
+#              exit 1
+#            end
+#            @options[longopt] = v || true
+#          end
+#        end
+#      end
+#      @argv.delete_if{ |x| x[0] == '-' }
+#
+#      if @options.key?('help')
+#        usage
+#        return
+#      end
+
+      @vbox = VBOX::CmdLineAPI.new(@options)
+
+      if @argv.size == 0 || @argv[0] == 'list'
+        vms = @vbox.get_vms.sort_by(&:name)
+        longest = vms.map(&:name).map(&:size).max
+
+        puts "%-*s %5s %6s  %s".gray % [longest, *%w'NAME MEM DIRSZ STATE']
+        vms.each do |vm|
+          s = sprintf "%-*s %5d %6s", longest, vm.name, vm.memory_size, vm.dir_size
+          case vm.state
+            when :running
+              s = "#{s}  RUNNING".green
+            when :poweroff
+              # do nothing
+            else
+              s = "#{s}  #{vm.state.to_s.upcase}"
+          end
+          puts s
+        end
+      else
+        name = @argv.shift
+        cmd  = @argv.shift
+
+        if cmd
+          cmd = ALIASES[cmd] if ALIASES[cmd]
+          if @options[:multiple]
+            _run_multiple_cmd cmd, name
+          else
+            _run_cmd cmd, name
+          end
+        else
+          @vbox.show_vm_info name
+        end
+      end
+    end
+
+    def _run_multiple_cmd cmd, name
+      vms = @vbox.get_vms(:only_names => true).sort_by(&:name)
+      vms.each do |vm|
+        if File.fnmatch(name, vm.name)
+          _run_cmd cmd, vm.name
+        end
+      end
+    end
+
+    def _run_cmd cmd, name
+      if COMMANDS.include?(cmd)
+        @vbox.send cmd, name
+      elsif cmd['=']
+        # set some variable, f.ex. "macaddress1=BADC0FFEE000"
+        @vbox.modify name, *cmd.split('=',2)
+      elsif cmd == 'snapshots'
+        @vbox.get_snapshots(name).each do |x|
+          printf "%s  %s\n", x.uuid, x.name
+        end
+      else
+        STDERR.puts "[!] unknown command #{cmd.inspect}".red
+        usage
+        exit 1
+      end
+    end
+  end
+
+#  class API41
+#    def initialize
+#      require 'virtualbox'
+#    end
+#
+#    def get_vms
+#      vms = VirtualBox::VM.all.sort_by(&:name)
+#
+#      longest = vms.map(&:name).map(&:size).max
+#
+#      puts "%-*s %5s %6s".gray % [longest, *%w'NAME MEM DIRSZ']
+#      vms.each do |vm|
+#        s = `du -s -BM "#{File.dirname(vm.settings_file_path)}"`
+#        size = s.split("\t").first.tr("M","")
+#
+#        s = sprintf "%-*s %5d %6s", longest, vm.name, vm.memory_size, size
+#        s = "#{s}  RUNNING".green if vm.state == :running
+#        puts s
+#      end
+#    end
+#
+#    def show_vm_info name
+#      vm = VirtualBox::VM.find name
+#      unless vm
+#        STDERR.puts "[!] cannot find vm #{name.inspect}".red
+#        exit 1
+#      end
+#
+#      h = {}
+#      vm.methods.each do |m|
+#        next if m.size < 4 || m !~ /=$/ || !vm.respond_to?(m1=m[0..-2])
+#        r = nil
+#        begin
+#          r = vm.send(m1)
+#        rescue VirtualBox::Exceptions::UnsupportedVersionException
+#        end
+#        h[m1] = r unless r.nil? || r == ""
+#      end
+#
+#      @longest = h.map{ |k,v| v == false ? 0 : k.size }.max + 1
+#      h.each do |k,v|
+#        next if v == false
+#        printf "%*s: ", @longest, k
+#        case v
+#        when String, Numeric, TrueClass, FalseClass, Symbol
+#          puts v
+#        when VirtualBox::AbstractModel
+#          p _attrs(v)
+#        else
+#          _print_value k,v
+#        end
+#      end
+#    end
+#
+#    def _print_value k,v
+#      newline = "\n  "+" "*@longest
+#      case k.to_sym
+#      when :boot_order, :extra_data
+#        p v
+#      when :shared_folders
+#        puts v.map{ |f| _attrs(f).inspect }.join(newline)
+#      when :network_adapters
+#        puts v.find_all{ |x| x.enabled }.map{ |x| _attrs(x).inspect }.join(newline)
+#      when :medium_attachments
+#        v.each_with_index do |ma, idx|
+#          print newline if idx > 0
+#          print _attrs(ma)
+#          if ma.medium
+#            print newline + "  "
+#            p _attrs(ma.medium)
+#          end
+#        end
+#      when :storage_controllers
+#        puts v.map{ |f| _attrs(f).inspect }.join(newline)
+#      else
+#        puts v.class.to_s.red
+#      end
+#    end
+#
+#    def _attrs x
+#      return nil unless x.respond_to?(:attributes)
+#      x.attributes.reject{ |k,v| 
+#        [:parent, :interface].include?(k) || v == "" || v.to_s['VirtualBox::']
+#      }
+#    end
+#  end
+
+  VMInfo = Struct.new :name, :uuid, :memory_size, :dir_size, :state
+  Snapshot = Struct.new :name, :uuid
+
+  class CmdLineAPI
+    def initialize options={}
+      @options = options
+      @options[:verbose] ||= 1 if @options[:dry_run]
+    end
+
+    # run as in backtick operator, and return result
+    def ` cmd
+      puts "[.] #{cmd}".gray if @options[:verbose]
+      exit if @options[:dry_run]
+      r = super
+      exit 1 unless $?.success?
+      r
+    end
+
+    # run as in system() call
+    def system *args
+      puts "[.] #{args.inspect}".gray if @options[:verbose]
+      exit if @options[:dry_run]
+      r = super
+      exit 1 unless $?.success?
+      r
+    end
+      
+    def get_vms params = {}
+      data = `VBoxManage list vms`
+      r = []
+      data.strip.each_line do |line|
+        if line[/(\{\h{8}-\h{4}-\h{4}-\h{4}-\h{12}\})/]
+          vm = VMInfo.new
+          vm.uuid = $1
+          vm.name = line.gsub($1, '').strip.sub(/^"/,'').sub(/"$/,'')
+          r << vm
+        end
+      end
+      return r if params[:only_names]
+      r.each do |vm|
+        data = `VBoxManage showvminfo #{vm.uuid} --machinereadable`
+        data.each_line do |line|
+          a = line.strip.split('=',2)
+          next unless a.size == 2
+          k,v = a
+          case k
+          when 'memory'
+            vm.memory_size = v.to_i
+          when 'VMState'
+            vm.state = v.tr('"','').to_sym
+          when 'CfgFile'
+            dir = File.dirname(v.tr('"',''))
+            s = `du -s -BM "#{dir}"`
+            vm.dir_size = s.split("\t").first.tr("M","")
+          end
+        end
+      end
+      r
+    end
+
+    def get_vm_info name
+      data = `VBoxManage showvminfo "#{name}" --machinereadable`
+      h = {}
+      data.each_line do |line|
+        line.strip!
+        k,v = line.split('=',2)
+        h[k] = v
+      end
+      h
+    end
+
+    def show_vm_info name
+      get_vm_info(name).each do |k,v|
+        next if ['"none"', '"off"', '""'].include?(v)
+        puts "#{k}=#{v}"
+      end
+    end
+
+    COMMANDS.each do |cmd|
+      class_eval <<-EOF
+        def #{cmd} name
+          system "VBoxManage", "controlvm", name, "#{cmd}"
+        end
+      EOF
+    end
+
+    def start name
+      if ENV['DISPLAY'] && !@options['headless']
+        system "VBoxManage", "startvm", name
+      else
+        puts "[.] $DISPLAY is not set, assuming --headless".gray unless @options['headless']
+        @options['headless'] = true
+        system "VBoxManage", "startvm", name, "--type", "headless"
+      end
+    end
+
+
+    def get_snapshots _name
+      r = []
+      name = uuid = nil
+      `VBoxManage snapshot "#{_name}" list --machinereadable`.strip.each_line do |line|
+        k,v = line.strip.split('=',2)
+        next unless v
+        v = v.strip.sub(/^"/,'').sub(/"$/,'')
+        case k
+        when /SnapshotName/
+          name = v
+        when /SnapshotUUID/
+          uuid = v
+        end
+        if name && uuid 
+          r << Snapshot.new(name, uuid)
+          name = uuid = nil
+        end
+      end
+      r
+    end
+
+    def _gen_vm_name parent_name
+      # try to guess new name
+      numbers = parent_name.scan /\d+/
+      if numbers.any?
+        lastnum = numbers.last
+        names = get_vms(only_names: true).map(&:name)
+        newnum = lastnum.to_i + 1
+        while true
+          newname = parent_name.dup
+          newname[parent_name.rindex(lastnum),lastnum.size] = newnum.to_s
+          return newname unless names.include?(newname)
+          newnum += 1
+        end
+      end
+      nil
+    end
+
+    def take_snapshot vm_name, params = {}
+      system "VBoxManage", "snapshot", vm_name, "take", params[:name] || "noname"
+      exit 1 unless $?.success?
+      get_snapshots(vm_name).last
+    end
+
+    def _name2macpart name
+      r = name.scan(/\d+/).map{ |x| "%02x" % x }.reverse.join
+      r == '' ? nil : r
+    end
+
+    def clone old_vm_name
+      args = []
+      if new_vm_name = @options['name'] || _gen_vm_name(old_vm_name)
+        args += ["--name", new_vm_name]
+      end
+
+      snapshot = case @options['snapshot']
+        when 'new', 'take', 'make'
+          take_snapshot(old_vm_name, new_vm_name ? {:name => "for #{new_vm_name}"} : {})
+        when 'last'
+          get_snapshots(old_vm_name).last
+        else
+          puts "[!] please gimme --snapshot=last OR --snapshot=new option"
+          exit 1
+        end
+      unless snapshot
+        puts "[!] failed to get snapshot, cannot continue".red
+        exit 1
+      end
+
+      args += ["--options","link"]
+      args += ["--register"]
+      args += ["--snapshot", snapshot.uuid]
+
+      system "VBoxManage", "clonevm", old_vm_name, *args
+
+#      puts "#{old_vm_name} -> #{new_vm_name}"
+#      puts "#{_name2macpart(old_vm_name)} -> #{_name2macpart(new_vm_name)}"
+
+      get_vm_info(old_vm_name).each do |k,v|
+        if k =~ /^macaddress/
+          old_mac = v.tr('"','').downcase
+          puts "[.] old #{k}=#{old_mac}"
+          old_automac = _name2macpart(old_vm_name)
+          if old_automac && old_mac[-old_automac.size..-1] == old_automac
+            new_automac = _name2macpart(new_vm_name)
+            new_mac = old_mac[0,old_mac.size-new_automac.size] + new_automac
+            puts "[.] new #{k}=#{new_mac}"
+            modify new_vm_name, k, new_mac, :quiet => true
+          end
+        end
+      end
+    end
+
+    def modify name, k, v, params = {}
+      system "VBoxManage", "modifyvm", name, "--#{k}", v
+      if $?.success? && !params[:quiet]
+        h = get_vm_info(k == 'name' ? v : name)
+        puts "#{k}=#{h[k]}"
+      end
+    end
+
+    def delete name
+      system "VBoxManage", "unregistervm", name, "--delete"
+    end
+  end
+end
+
+
+if $0 == __FILE__
+  VBOX::CLI.new.process
+end
