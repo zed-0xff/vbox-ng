@@ -6,7 +6,7 @@ require 'optparse'
 # http://stackoverflow.com/questions/4078906/is-there-a-natural-sort-by-method-for-ruby
 class String
   def naturalized
-    scan(/[^\d\.]+|[\d\.]+/).collect { |f| f.match(/\d+(\.\d+)?/) ? f.to_f : f }
+    scan(/[^\d]+|\d+/).collect { |f| f.match(/\d+/) ? f.to_i : f }
   end
 end
 
@@ -40,19 +40,16 @@ module VBOX
     end
 
     def process
-      @options = { :verbose => 0 }
+      @options = { :verbose => 0, :multiple => true }
       optparser = OptionParser.new do |opts|
         opts.banner = banner
 
-        opts.on "-h", "--help", "show this message" do
-          puts @help
-          exit
-        end
-        opts.on "-m", "--multiple", 
-        "assume <vm_name> is a wildcard, and run on multiple VMs",
-        "all glob(7) patterns like *,?,[a-z] are supported",
-        "plus additional pattern {1-20} which matches","a sequence of numbers: 1,2,3,...,19,20" do
-          @options[:multiple] = true
+        opts.on "-m", "--[no-]multiple", 
+        "(default: on) assume <vm_name> is a wildcard,",
+        "and run on multiple VMs.", 
+        "All glob(7) patterns like *,?,[a-z] are supported",
+        "plus additional pattern {1-20} which matches","a sequence of numbers: 1,2,3,...,19,20" do |x|
+          @options[:multiple] = x
         end
         opts.on "-n", "--dry-run", "do not change anything, just print commands to be invoked" do
           @options[:dry_run] = true
@@ -71,19 +68,32 @@ module VBOX
         opts.on "-H", "--headless", "start: start VM in headless mode" do
           @options[:headless] = true
         end
+        opts.on "-h", "--help", "show this message" do
+          puts @help
+          exit
+        end
       end
       @help = optparser.help
       @argv = optparser.parse(@argv)
 
       @vbox = VBOX::CmdLineAPI.new(@options)
 
-      if @argv.size == 0 || @argv[0] == 'list'
+      if @argv.size == 0 || @argv.last == 'list'
         vms = @vbox.list_vms
         @vbox.list_vms(:running => true).each do |vm|
           vms.find{ |vm1| vm1.uuid == vm.uuid }.state = :running
         end
 
-        longest = vms.map(&:name).map(&:size).max
+        if @argv.size == 2 && @argv.last == 'list'
+          if @options[:multiple]
+            @globs = _expand_glob(@argv.first).flatten
+            vms = vms.keep_if{ |vm| _fnmatch(vm.name) }
+          else
+            vms = vms.keep_if{ |vm| vm.name == @argv.first }
+          end
+        end
+
+        longest = (vms.map(&:name).map(&:size)+[4]).max
 
         puts "%-*s %5s %6s  %s".gray % [longest, *%w'NAME MEM DIRSZ STATE']
         vms.each do |vm|
@@ -129,7 +139,7 @@ module VBOX
       end
     end
 
-    def _fnmatch glob, fname
+    def _fnmatch fname
       @globs.each do |glob|
         return true if File.fnmatch(glob, fname)
       end
@@ -140,7 +150,7 @@ module VBOX
       vms = @vbox.list_vms
       @globs = _expand_glob(name).flatten
       vms.each do |vm|
-        if _fnmatch(name, vm.name)
+        if _fnmatch(vm.name)
           _run_cmd cmd, vm.name
         end
       end
@@ -266,7 +276,7 @@ module VBOX
       puts "[.] #{cmd}".gray if @options[:verbose] >= 2
       exit if @options[:dry_run]
       r = super
-      exit 1 unless $?.success?
+      #exit 1 unless $?.success?
       r
     end
 
@@ -375,18 +385,33 @@ module VBOX
       r
     end
 
+    # d0   -> d1, d2, d3
+    # d1   -> d1.1, d1.2, d1.3
+    # d1.1 -> d1.1.1, d1.1.2, d1.1.3
     def _gen_vm_name parent_name
       # try to guess new name
       numbers = parent_name.scan /\d+/
       if numbers.any?
         lastnum = numbers.last
         names = list_vms.map(&:name)
-        newnum = lastnum.to_i + 1
-        while true
-          newname = parent_name.dup
-          newname[parent_name.rindex(lastnum),lastnum.size] = newnum.to_s
-          return newname unless names.include?(newname)
-          newnum += 1
+        if lastnum.to_i == 0
+          # d0 -> d1, d2, d3
+          newnum = lastnum.to_i + 1
+          while true
+            newname = parent_name.dup
+            newname[parent_name.rindex(lastnum),lastnum.size] = newnum.to_s
+            return newname unless names.include?(newname)
+            newnum += 1
+          end
+        else
+          # d1   -> d1.1, d1.2, d1.3
+          # d1.1 -> d1.1.1, d1.1.2, d1.1.3
+          newnum = 1
+          while true
+            newname = "#{parent_name}.#{newnum}"
+            return newname unless names.include?(newname)
+            newnum += 1
+          end
         end
       end
       nil
@@ -399,7 +424,7 @@ module VBOX
     end
 
     def _name2macpart name
-      r = name.scan(/\d+/).map{ |x| "%02x" % x }.reverse.join
+      r = name.scan(/\d+/).map{ |x| "%02x" % x }.join
       r == '' ? nil : r
     end
 
