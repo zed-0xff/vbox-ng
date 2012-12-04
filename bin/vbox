@@ -2,13 +2,18 @@
 require 'awesome_print' # TODO: make optional
 require 'optparse'
 
+# for natural sort order
+# http://stackoverflow.com/questions/4078906/is-there-a-natural-sort-by-method-for-ruby
+class String
+  def naturalized
+    scan(/[^\d\.]+|[\d\.]+/).collect { |f| f.match(/\d+(\.\d+)?/) ? f.to_f : f }
+  end
+end
+
 module VBOX
 
-  #COMMANDS = %w'start stop pause shutdown save_state'
-  COMMANDS = 'start|pause|resume|reset|poweroff|savestate|acpipowerbutton|acpisleepbutton|clone|delete'.split('|')
+  COMMANDS = %w'start pause resume reset poweroff savestate acpipowerbutton acpisleepbutton clone delete show'
   ALIASES  = {'clonevm'=>'clone', 'destroy'=>'delete', 'rm'=>'delete'}
-  SHORTOPTS= { 'h'=>'help', 'v'=>:verbose, 'n'=>:dry_run, 'm'=>:multiple }
-  OPTIONS  = SHORTOPTS.values + %w'snapshot headless'
 
   class CLI
     def initialize argv = ARGV
@@ -40,10 +45,13 @@ module VBOX
         opts.banner = banner
 
         opts.on "-h", "--help", "show this message" do
-          puts optparser.help
+          puts @help
           exit
         end
-        opts.on "-m", "--multiple", "assume <vm_name> is a wildcard, and run on multiple VMs" do
+        opts.on "-m", "--multiple", 
+        "assume <vm_name> is a wildcard, and run on multiple VMs",
+        "all glob(7) patterns like *,?,[a-z] are supported",
+        "plus additional pattern {1-20} which matches","a sequence of numbers: 1,2,3,...,19,20" do
           @options[:multiple] = true
         end
         opts.on "-n", "--dry-run", "do not change anything, just print commands to be invoked" do
@@ -64,12 +72,13 @@ module VBOX
           @options[:headless] = true
         end
       end
+      @help = optparser.help
       @argv = optparser.parse(@argv)
 
       @vbox = VBOX::CmdLineAPI.new(@options)
 
       if @argv.size == 0 || @argv[0] == 'list'
-        vms = @vbox.get_vms.sort_by(&:name)
+        vms = @vbox.get_vms
         longest = vms.map(&:name).map(&:size).max
 
         puts "%-*s %5s %6s  %s".gray % [longest, *%w'NAME MEM DIRSZ STATE']
@@ -87,25 +96,42 @@ module VBOX
         end
       else
         name = @argv.shift
-        cmd  = @argv.shift
+        cmd  = @argv.shift || 'show' # default command is 'show'
 
-        if cmd
-          cmd = ALIASES[cmd] if ALIASES[cmd]
-          if @options[:multiple]
-            _run_multiple_cmd cmd, name
-          else
-            _run_cmd cmd, name
-          end
+        cmd = ALIASES[cmd] if ALIASES[cmd]
+        if @options[:multiple]
+          _run_multiple_cmd cmd, name
         else
-          @vbox.show_vm_info name
+          _run_cmd cmd, name
         end
       end
     end
 
+    # expand globs like "d{1-30}" to d1,d2,d3,d4,...,d29,d30
+    def _expand_glob glob
+      if glob[/\{(\d+)-(\d+)\}/]
+        r = []
+        $1.to_i.upto($2.to_i) do |i|
+          r << _expand_glob(glob.sub($&,i.to_s))
+        end
+        r
+      else
+        glob
+      end
+    end
+
+    def _fnmatch glob, fname
+      @globs.each do |glob|
+        return true if File.fnmatch(glob, fname)
+      end
+      false
+    end
+
     def _run_multiple_cmd cmd, name
-      vms = @vbox.get_vms(:only_names => true).sort_by(&:name)
+      vms = @vbox.get_vms(:only_names => true)
+      @globs = _expand_glob(name).flatten
       vms.each do |vm|
-        if File.fnmatch(name, vm.name)
+        if _fnmatch(name, vm.name)
           _run_cmd cmd, vm.name
         end
       end
@@ -123,7 +149,7 @@ module VBOX
         end
       else
         STDERR.puts "[!] unknown command #{cmd.inspect}".red
-        usage
+        puts @help
         exit 1
       end
     end
@@ -254,7 +280,9 @@ module VBOX
           r << vm
         end
       end
+      r.sort_by!{ |vm| vm.name.naturalized }
       return r if params[:only_names]
+
       r.each do |vm|
         data = `VBoxManage showvminfo #{vm.uuid} --machinereadable`
         data.each_line do |line|
@@ -287,7 +315,7 @@ module VBOX
       h
     end
 
-    def show_vm_info name
+    def show name
       get_vm_info(name).each do |k,v|
         next if ['"none"', '"off"', '""'].include?(v)
         puts "#{k}=#{v}"
@@ -295,7 +323,7 @@ module VBOX
     end
 
     COMMANDS.each do |cmd|
-      class_eval <<-EOF
+      class_eval <<-EOF unless instance_methods.include?(cmd.to_sym)
         def #{cmd} name
           system "VBoxManage", "controlvm", name, "#{cmd}"
         end
@@ -363,6 +391,10 @@ module VBOX
     end
 
     def clone old_vm_name
+      (@options[:clones] || 1).times{ _clone(old_vm_name) }
+    end
+
+    def _clone old_vm_name
       args = []
       if new_vm_name = @options['name'] || _gen_vm_name(old_vm_name)
         args += ["--name", new_vm_name]
