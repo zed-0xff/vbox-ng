@@ -27,9 +27,12 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "bin/vbox",
-    "lib/vbox-ng.rb",
+    "lib/vbox.rb",
+    "lib/vbox/api41.rb",
+    "lib/vbox/cli.rb",
     "spec/spec_helper.rb",
-    "spec/vbox-ng_spec.rb"
+    "spec/vbox-ng_spec.rb",
+    "vbox-ng.gemspec"
   ]
   s.homepage = "http://github.com/zed-0xff/vbox-ng"
   s.licenses = ["MIT"]
