@@ -6,6 +6,16 @@ module VBOX
       @all_vars = {}
     end
 
+    def dir_size
+      @dir_size ||=
+        begin
+          VBOX.api.get_vm_details(self) unless @all_vars['CfgFile']
+          return nil unless v=@all_vars['CfgFile']
+          dir = File.dirname(v.tr('"',''))
+          `du -s -BM "#{dir}"`.split("\t").first.tr("M","")
+        end
+    end
+
     class << self
       def all
         VBOX.api.list_vms

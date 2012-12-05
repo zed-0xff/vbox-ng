@@ -52,10 +52,10 @@ module VBOX
           vm.memory_size = v.to_i
         when 'VMState'
           vm.state = v.tr('"','').to_sym
-        when 'CfgFile'
-          dir = File.dirname(v.tr('"',''))
-          s = `du -s -BM "#{dir}"`
-          vm.dir_size = s.split("\t").first.tr("M","")
+#        when 'CfgFile'
+#          dir = File.dirname(v.tr('"',''))
+#          s = `du -s -BM "#{dir}"`
+#          vm.dir_size = s.split("\t").first.tr("M","")
         end
       end
       vm
