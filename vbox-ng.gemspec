@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "vbox-ng"
-  s.version = "0.0.1"
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrey \"Zed\" Zaikin"]
@@ -27,11 +27,14 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "bin/vbox",
+    "lib/vbox-ng.rb",
     "lib/vbox.rb",
     "lib/vbox/api41.rb",
     "lib/vbox/cli.rb",
+    "lib/vbox/cmdlineapi.rb",
+    "lib/vbox/vm.rb",
     "spec/spec_helper.rb",
-    "spec/vbox-ng_spec.rb",
+    "spec/vm_spec.rb",
     "vbox-ng.gemspec"
   ]
   s.homepage = "http://github.com/zed-0xff/vbox-ng"
