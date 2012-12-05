@@ -38,20 +38,20 @@ Commandline usage
     	-h, --help                       show this message
     
     EXAMPLES:
-    	vbox -v                      - list VMs with memory and dir sizes
-    	vbox "d{1-10}" list          - list only VMs named 'd1','d2','d3',...,'d10'
-    	vbox "test*" start           - start VMs which name starts with 'test'
-    	vbox "v[ace]" cpus=2         - set 'number of cpus'=2 on VMs named 'va','vc','ve'
-    	vbox d0                      - list all parameters of VM named 'd0'
-    	vbox d0 clone -c 10 -S last  - make 10 new linked clones of vm 'd0' using the
-    	                               latest hdd snapshot, if any
-    	vbox d0 clone -c 10 -S new   - make ONE new shapshot of VM 'd0' and then make
-    	                               10 new clones linked to this snapshot
-    	vbox "tmp?" delete           - try to destroy all VMs which name is 4 letters long
-    	                               and starts with 'tmp'
+    	vbox -v                        - list VMs with memory and dir sizes
+    	vbox "d{1-10}" list            - list only VMs named 'd1','d2','d3',...,'d10'
+    	vbox "test*" start             - start VMs which name starts with 'test'
+    	vbox "v[ace]" cpus=2           - set 'number of cpus'=2 on VMs named 'va','vc','ve'
+    	vbox d0                        - list all parameters of VM named 'd0'
+    	vbox d0 clone -c 10 -S last    - make 10 new linked clones of vm 'd0' using the
+    	                                 latest hdd snapshot, if any
+    	vbox d0 clone -c 10 -S new     - make ONE new shapshot of VM 'd0' and then make
+    	                                 10 new clones linked to this snapshot
+    	vbox "tmp?" delete             - try to destroy all VMs which name is 4 letters long
+    	                                 and starts with 'tmp'
     	vbox ae340207-f472-4d63-80e7-855fca6808cb
-    	                             - list all parameters of VM with this GUID
-    	vbox --no-glob "*wtf?!*" rm  - destroy VM which name is '*wtf?!*'
+    	                               - list all parameters of VM with this GUID
+    	vbox --no-glob "*wtf?!*" rm    - destroy VM which name is '*wtf?!*'
 
 Ruby examples
 =============

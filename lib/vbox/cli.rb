@@ -53,20 +53,20 @@ module VBOX
       space = " "*bname.size
       r = []
       r << "EXAMPLES:"
-      r << %Q{\t#{bname} -v                      - list VMs with memory and dir sizes}
-      r << %Q{\t#{bname} "d{1-10}" list          - list only VMs named 'd1','d2','d3',...,'d10'}
-      r << %Q{\t#{bname} "test*" start           - start VMs which name starts with 'test'}
-      r << %Q{\t#{bname} "v[ace]" cpus=2         - set 'number of cpus'=2 on VMs named 'va','vc','ve'}
-      r << %Q{\t#{bname} d0                      - list all parameters of VM named 'd0'}
-      r << %Q{\t#{bname} d0 clone -c 10 -S last  - make 10 new linked clones of vm 'd0' using the}
-      r << %Q{\t#{space}                           latest hdd snapshot, if any}
-      r << %Q{\t#{bname} d0 clone -c 10 -S new   - make ONE new shapshot of VM 'd0' and then make}
-      r << %Q{\t#{space}                           10 new clones linked to this snapshot}
-      r << %Q{\t#{bname} "tmp?" delete           - try to destroy all VMs which name is 4 letters long}
-      r << %Q{\t#{space}                           and starts with 'tmp'}
+      r << %Q{\t#{bname} -v                        - list VMs with memory and dir sizes}
+      r << %Q{\t#{bname} "d{1-10}" list            - list only VMs named 'd1','d2','d3',...,'d10'}
+      r << %Q{\t#{bname} "test*" start             - start VMs which name starts with 'test'}
+      r << %Q{\t#{bname} "v[ace]" cpus=2           - set 'number of cpus'=2 on VMs named 'va','vc','ve'}
+      r << %Q{\t#{bname} d0                        - list all parameters of VM named 'd0'}
+      r << %Q{\t#{bname} d0 clone -c 10 -S last    - make 10 new linked clones of vm 'd0' using the}
+      r << %Q{\t#{space}                             latest hdd snapshot, if any}
+      r << %Q{\t#{bname} d0 clone -c 10 -S new     - make ONE new shapshot of VM 'd0' and then make}
+      r << %Q{\t#{space}                             10 new clones linked to this snapshot}
+      r << %Q{\t#{bname} "tmp?" delete             - try to destroy all VMs which name is 4 letters long}
+      r << %Q{\t#{space}                             and starts with 'tmp'}
       r << %Q{\t#{bname} ae340207-f472-4d63-80e7-855fca6808cb}
-      r << %Q{\t#{space}                         - list all parameters of VM with this GUID}
-      r << %Q{\t#{bname} --no-glob "*wtf?!*" rm  - destroy VM which name is '*wtf?!*'}
+      r << %Q{\t#{space}                           - list all parameters of VM with this GUID}
+      r << %Q{\t#{bname} --no-glob "*wtf?!*" rm    - destroy VM which name is '*wtf?!*'}
       r.join("\n")
     end
 
