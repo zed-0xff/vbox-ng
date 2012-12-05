@@ -42,7 +42,7 @@ module VBOX
 #      (COMMANDS+['snapshots']).sort.each do |c|
 #        r << "\t#{c}"
 #      end
-      r << "\t" + _join_by_width(COMMANDS+['snapshots'], newline: ",\n\t", max_length: 64 )
+      r << "\t" + _join_by_width(COMMANDS+['snapshots'], :newline => ",\n\t", :max_length => 64 )
       r << ""
       r << "OPTIONS:"
       r.join("\n")

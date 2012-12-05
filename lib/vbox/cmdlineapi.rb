@@ -110,7 +110,7 @@ module VBOX
     end
 
     COMMANDS.each do |cmd|
-      class_eval <<-EOF unless instance_methods.include?(cmd.to_sym)
+      class_eval <<-EOF unless method_defined?(cmd.to_sym)
         def #{cmd} name
           system "VBoxManage", "controlvm", name, "#{cmd}"
         end
