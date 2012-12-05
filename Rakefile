@@ -24,6 +24,7 @@ Jeweler::Tasks.new do |gem|
   # dependencies defined in Gemfile
 
   gem.executables = %w'vbox'
+  gem.files.include "lib/**/*.rb"
   gem.files.exclude "samples/*", "README.md.tpl"
   gem.extra_rdoc_files.exclude "README.md.tpl"
 end
