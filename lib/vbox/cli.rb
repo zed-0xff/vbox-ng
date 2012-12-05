@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 require 'awesome_print'
 require 'optparse'
-require 'vbox/cmdlineapi'
 
 module VBOX
 
