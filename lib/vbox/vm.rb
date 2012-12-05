@@ -38,7 +38,7 @@ module VBOX
           VBOX.api.get_vm_details(self) unless @all_vars['CfgFile']
           return nil unless v=@all_vars['CfgFile']
           dir = File.dirname(v.tr('"',''))
-          `du -s -BM "#{dir}"`.split("\t").first.tr("M","").to_i
+          `du -sm "#{dir}"`.split("\t").first.tr("M","").to_i
         end
     end
 
