@@ -17,11 +17,15 @@ Jeweler::Tasks.new do |gem|
   gem.name = "vbox-ng"
   gem.homepage = "http://github.com/zed-0xff/vbox-ng"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{A comfortable way of doing common VirtualBox tasks.}
+  gem.description = %Q{Create/start/stop/reboot/modify dozens of VirtualBox VMS with one short command.}
   gem.email = "zed.0xff@gmail.com"
   gem.authors = ["Andrey \"Zed\" Zaikin"]
   # dependencies defined in Gemfile
+
+  gem.executables = %w'vbox'
+  gem.files.exclude "samples/*", "README.md.tpl"
+  gem.extra_rdoc_files.exclude "README.md.tpl"
 end
 Jeweler::RubygemsDotOrgTasks.new
 
@@ -38,15 +42,15 @@ end
 
 task :default => :spec
 
-require 'rdoc/task'
-Rake::RDocTask.new do |rdoc|
-  version = File.exist?('VERSION') ? File.read('VERSION') : ""
-
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "vbox-ng #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-end
+#require 'rdoc/task'
+#Rake::RDocTask.new do |rdoc|
+#  version = File.exist?('VERSION') ? File.read('VERSION') : ""
+#
+#  rdoc.rdoc_dir = 'rdoc'
+#  rdoc.title = "vbox-ng #{version}"
+#  rdoc.rdoc_files.include('README*')
+#  rdoc.rdoc_files.include('lib/**/*.rb')
+#end
 
 desc "build readme"
 task :readme do
