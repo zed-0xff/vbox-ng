@@ -64,7 +64,7 @@ module VBOX
 #          vm.dir_size = s.split("\t").first.tr("M","")
         end
       end
-      vm
+      (vm.name && vm.uuid) ? vm : nil
     end
 
     # for natural string sort order

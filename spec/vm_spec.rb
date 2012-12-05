@@ -36,6 +36,11 @@ describe "VBOX::VM" do
         vm = VBOX::VM.send(method, "{#{TEST_VM_UUID}}")
         vm.should be_instance_of(VBOX::VM)
       end
+
+      it "finds nothing" do
+        vm = VBOX::VM.send(method, "blah-blah-blah-unexistant-vm-#{rand}-#{rand}-#{rand}")
+        vm.should be_nil
+      end
     end
   end
 
