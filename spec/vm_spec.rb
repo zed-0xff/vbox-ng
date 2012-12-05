@@ -11,6 +11,12 @@ describe "VBOX::VM" do
     end
   end
 
+  describe :first do
+    it "returns VBOX::VM" do
+      VBOX::VM.first.should be_instance_of(VBOX::VM)
+    end
+  end
+
   TEST_VM_NAME = "d0"
   TEST_VM_UUID = 'ae340207-f472-4d63-80e7-855fca6808cb'
 
@@ -31,5 +37,9 @@ describe "VBOX::VM" do
         vm.should be_instance_of(VBOX::VM)
       end
     end
+  end
+
+  describe :dir_size do
+    VBOX::VM.first.dir_size.should > 0
   end
 end

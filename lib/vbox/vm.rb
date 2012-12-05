@@ -12,13 +12,17 @@ module VBOX
           VBOX.api.get_vm_details(self) unless @all_vars['CfgFile']
           return nil unless v=@all_vars['CfgFile']
           dir = File.dirname(v.tr('"',''))
-          `du -s -BM "#{dir}"`.split("\t").first.tr("M","")
+          `du -s -BM "#{dir}"`.split("\t").first.tr("M","").to_i
         end
     end
 
     class << self
       def all
         VBOX.api.list_vms
+      end
+
+      def first
+        all.first
       end
 
       def find name_or_uuid
