@@ -52,7 +52,7 @@ Ruby examples
 
 Clone first VM
 -----
-```
+``` ruby
 # irb
 >> require 'vbox'
 => true
@@ -68,7 +68,7 @@ Machine has been successfully cloned as "d1"
 
 Find VM by name and start it
 -----
-```
+``` ruby
 >> vm2 = VBOX::VM.find 'd14'
 >> vm2.start!
 [.] $DISPLAY is not set, assuming --headless
@@ -79,7 +79,7 @@ VM "59d9af2a-4401-4b38-ad74-b5c6c6b45a81" has been successfully started.
 
 Stop VM and destroy it (delete all its files)
 -----
-```
+``` ruby
 >> vm2 = VBOX::VM.find 'd14'
 >> vm2.poweroff!
 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
@@ -89,4 +89,23 @@ Stop VM and destroy it (delete all its files)
 => true
 >> vm2 = VBOX::VM.find 'd14'
 => nil
+```
+
+Calculate total disk space occupied by all VMs
+-----
+``` ruby
+>> VBOX::VM.all.map(&:dir_size).inject(&:+)
+=> 20271
+```
+
+Show all VMs sorted by directory size in reverse order
+-----
+``` ruby
+>> VBOX::VM.all.sort_by(&:dir_size).reverse.each{ |vm| printf "%5d %s\n", vm.dir_size, vm.name }
+ 9175 xp
+ 5336 rwthCTF2012 vulnbox final
+ 2962 ubuntu 12.04.1
+ 2184 d0
+  109 u2
+   87 u1
 ```
