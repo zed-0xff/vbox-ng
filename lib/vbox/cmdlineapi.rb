@@ -32,12 +32,21 @@ module VBOX
       r
     end
 
-    def get_vm_details vm
-      data = `VBoxManage showvminfo #{vm.uuid} --machinereadable`
+    def get_vm_details vm_or_name_or_uuid
+      name_or_uuid = case vm_or_name_or_uuid
+        when String
+          vm = VM.new
+          vm_or_name_or_uuid
+        when VM
+          vm = vm_or_name_or_uuid
+          vm.uuid
+        end
+
+      data = `VBoxManage showvminfo "#{name_or_uuid}" --machinereadable`
       data.each_line do |line|
-        a = line.strip.split('=',2)
-        next unless a.size == 2
-        k,v = a
+        k,v = line.strip.split('=',2)
+        next unless v
+        vm.all_vars[k] = v # not stripping quotes here to save some CPU time
         case k
         when 'memory'
           vm.memory_size = v.to_i
