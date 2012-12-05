@@ -15,6 +15,8 @@ module VBOX
   COMMANDS = %w'start pause resume reset poweroff savestate acpipowerbutton acpisleepbutton clone delete show'
   ALIASES  = {'clonevm'=>'clone', 'destroy'=>'delete', 'rm'=>'delete'}
 
+  UUID_RE  = /\{\h{8}-\h{4}-\h{4}-\h{4}-\h{12}\}/
+
   class CLI
     def initialize argv = ARGV
       @argv = argv
@@ -40,12 +42,12 @@ module VBOX
     end
 
     def process
-      @options = { :verbose => 0, :multiple => true }
+      @options = { :verbose => 0 }
       optparser = OptionParser.new do |opts|
         opts.banner = banner
 
         opts.on "-m", "--[no-]multiple", 
-        "(default: on) assume <vm_name> is a wildcard,",
+        "(default: auto) assume <vm_name> is a wildcard,",
         "and run on multiple VMs.", 
         "All glob(7) patterns like *,?,[a-z] are supported",
         "plus additional pattern {1-20} which matches","a sequence of numbers: 1,2,3,...,19,20" do |x|
@@ -76,6 +78,11 @@ module VBOX
       @help = optparser.help
       @argv = optparser.parse(@argv)
 
+      # disable glob matching if first arg is a UUID
+      unless @options.key?(:multiple)
+        @options[:multiple] = "{#{@argv.first}}" !~ UUID_RE
+      end
+
       @vbox = VBOX::CmdLineAPI.new(@options)
 
       if @argv.size == 0 || @argv.last == 'list'
@@ -95,22 +102,19 @@ module VBOX
 
         longest = (vms.map(&:name).map(&:size)+[4]).max
 
-        puts "%-*s %5s %6s  %s".gray % [longest, *%w'NAME MEM DIRSZ STATE']
+        puts "%-*s %5s %6s  %-12s %s".gray % [longest, *%w'NAME MEM DIRSZ STATE UUID']
         vms.each do |vm|
           if @options[:verbose] > 0
             @vbox.get_vm_details vm
-            s = sprintf "%-*s %5d %6s", longest, vm.name, vm.memory_size||0, vm.dir_size||0
+            state = (vm.state == :poweroff) ? '' : vm.state.to_s.upcase
+            s = sprintf "%-*s %5d %6s  %-12s %s", longest, vm.name, vm.memory_size||0, vm.dir_size||0,
+              state, vm.uuid
           else
-            s = sprintf "%-*s %5s %6s", longest, vm.name, '', ''
+            state = (vm.state == :poweroff) ? '' : vm.state.to_s.upcase
+            s = sprintf "%-*s %5s %6s  %-12s %s", longest, vm.name, '', '', 
+              state, vm.uuid
           end
-          case vm.state
-            when :running
-              s = "#{s}  RUNNING".green
-            when :poweroff
-              # do nothing
-            else
-              s = "#{s}  #{vm.state.to_s.upcase}"
-          end
+          s = s.green if vm.state == :running
           puts s
         end
       else
@@ -317,10 +321,10 @@ module VBOX
       end
       r = []
       data.strip.each_line do |line|
-        if line[/(\{\h{8}-\h{4}-\h{4}-\h{4}-\h{12}\})/]
+        if line[UUID_RE]
           vm = VMInfo.new
-          vm.uuid = $1
-          vm.name = line.gsub($1, '').strip.sub(/^"/,'').sub(/"$/,'')
+          vm.uuid = $&
+          vm.name = line.gsub($&, '').strip.sub(/^"/,'').sub(/"$/,'')
           r << vm
         end
       end
@@ -429,6 +433,7 @@ module VBOX
     end
 
     def clone old_vm_name
+      @clone_use_snapshot = nil
       (@options[:clones] || 1).times{ _clone(old_vm_name) }
     end
 
@@ -438,7 +443,7 @@ module VBOX
         args += ["--name", new_vm_name]
       end
 
-      snapshot = case @options[:snapshot]
+      snapshot = @clone_use_snapshot ||= case @options[:snapshot]
         when 'new', 'take', 'make'
           take_snapshot(old_vm_name, new_vm_name ? {:name => "for #{new_vm_name}"} : {})
         when 'last'
