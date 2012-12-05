@@ -1,14 +1,6 @@
 #!/usr/bin/env ruby
 require 'awesome_print'
 
-# for natural sort order
-# http://stackoverflow.com/questions/4078906/is-there-a-natural-sort-by-method-for-ruby
-class String
-  def naturalized
-    scan(/[^\d]+|\d+/).collect { |f| f.match(/\d+/) ? f.to_i : f }
-  end
-end
-
 module VBOX
 
   COMMANDS = %w'start pause resume reset poweroff savestate acpipowerbutton acpisleepbutton clone delete show'
@@ -61,6 +53,12 @@ module VBOX
       vm
     end
 
+    # for natural string sort order
+    # http://stackoverflow.com/questions/4078906/is-there-a-natural-sort-by-method-for-ruby
+    def _naturalize s
+      s.scan(/[^\d]+|\d+/).collect { |f| f.match(/\d+/) ? f.to_i : f }
+    end
+
     def list_vms params = {}
       if params[:running]
         data = `VBoxManage list runningvms`
@@ -76,7 +74,7 @@ module VBOX
           r << vm
         end
       end
-      r.sort_by{ |vm| vm.name.naturalized }
+      r.sort_by{ |vm| _naturalize(vm.name) }
     end
 
     def get_vm_info name
