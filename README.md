@@ -15,37 +15,43 @@ Commandline usage
     # vbox -h
 
     USAGE:
-    	cli.rb [options]                           - list VMs
-    	cli.rb [options] <vm_name>                 - show VM params
-    	cli.rb [options] <vm_name> <param>=<value> - change VM params (name, cpus, usb, etc)
-    	cli.rb [options] <vm_name> <command>       - make some action (start, reset, etc) on VM
+    	vbox [options]                           - list VMs
+    	vbox [options] <vm_name>                 - show VM params
+    	vbox [options] <vm_name> <param>=<value> - change VM params (name, cpus, usb, etc)
+    	vbox [options] <vm_name> <command>       - make some action (start, reset, etc) on VM
     
     COMMANDS:
-    	acpipowerbutton
-    	acpisleepbutton
-    	clone
-    	delete
-    	pause
-    	poweroff
-    	reset
-    	resume
-    	savestate
-    	show
-    	snapshots
-    	start
+    	start, pause, resume, reset, poweroff, savestate,
+    	acpipowerbutton, acpisleepbutton, clone, delete, show, snapshots
     
     OPTIONS:
-        -m, --[no-]multiple              (default: auto) assume <vm_name> is a wildcard,
-                                         and run on multiple VMs.
-                                         All glob(7) patterns like *,?,[a-z] are supported
-                                         plus additional pattern {1-20} which matches
-                                         a sequence of numbers: 1,2,3,...,19,20
-        -n, --dry-run                    do not change anything, just print commands to be invoked
-        -v, --verbose                    increase verbosity
-        -c, --clones N                   clone: make N clones
-        -s, --snapshot MODE              clone: use LAST shapshot or make NEW
-        -H, --headless                   start: start VM in headless mode
-        -h, --help                       show this message
+    	-g, --[no-]glob                  (default: auto) assume <vm_name> is a wildcard,
+    	                                 and run on multiple VMs.
+    	                                 All glob(7) patterns like *,?,[a-z] are supported
+    	                                 plus additional pattern {1-20} which matches
+    	                                 a sequence of numbers: 1,2,3,...,19,20
+    	-n, --dry-run                    do not change anything, just print commands to be invoked
+    	-v, --verbose                    increase verbosity
+    	-c, --clones N                   clone: make N clones
+    	-S, --snapshot MODE              clone: use LAST shapshot or make NEW
+    	-H, --headless                   start: start VM in headless mode
+    	-h, --help                       show this message
+    
+    EXAMPLES:
+    	vbox -v                      - list VMs with memory and dir sizes
+    	vbox "d{1-10}" list          - list only VMs named 'd1','d2','d3',...,'d10'
+    	vbox "test*" start           - start VMs which name starts with 'test'
+    	vbox "v[ace]" cpus=2         - set 'number of cpus'=2 on VMs named 'va','vc','ve'
+    	vbox d0                      - list all parameters of VM named 'd0'
+    	vbox d0 clone -c 10 -S last  - make 10 new linked clones of vm 'd0' using the
+    	                               latest hdd snapshot, if any
+    	vbox d0 clone -c 10 -S new   - make ONE new shapshot of VM 'd0' and then make
+    	                               10 new clones linked to this snapshot
+    	vbox "tmp?" delete           - try to destroy all VMs which name is 4 letters long
+    	                               and starts with 'tmp'
+    	vbox ae340207-f472-4d63-80e7-855fca6808cb
+    	                             - list all parameters of VM with this GUID
+    	vbox --no-glob "*wtf?!*" rm  - destroy VM which name is '*wtf?!*'
 
 Ruby examples
 =============

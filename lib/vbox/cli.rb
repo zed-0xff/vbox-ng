@@ -11,22 +11,62 @@ module VBOX
       @argv = argv
     end
 
-    def banner
-      bname = File.basename(__FILE__)
-      r = []
-      r <<  "USAGE:"
-      r <<  "\t#{bname} [options]                           - list VMs"
-      r <<  "\t#{bname} [options] <vm_name>                 - show VM params"
-      r <<  "\t#{bname} [options] <vm_name> <param>=<value> - change VM params (name, cpus, usb, etc)"
-      r <<  "\t#{bname} [options] <vm_name> <command>       - make some action (start, reset, etc) on VM"
-
-      r <<  ""
-      r <<  "COMMANDS:"
-      (COMMANDS+['snapshots']).sort.each do |c|
-        r <<  "\t#{c}"
+    def _join_by_width words, params = {}
+      params[:max_length] ||= 30
+      params[:separator]  ||= ", "
+      params[:newline]    ||= "\n"
+      lines = []
+      line = []
+      words.each do |word|
+        if (line+[word]).join(params[:separator]).size > params[:max_length]
+          lines << line.join(params[:separator])
+          line = []
+        end
+        line << word
       end
-      r <<  ""
-      r <<  "OPTIONS:"
+      lines << line.join(params[:separator]) unless line.empty?
+      lines.join params[:newline]
+    end
+
+    def banner
+      bname = File.basename($0)
+      r = []
+      r << "USAGE:"
+      r << "\t#{bname} [options]                           - list VMs"
+      r << "\t#{bname} [options] <vm_name>                 - show VM params"
+      r << "\t#{bname} [options] <vm_name> <param>=<value> - change VM params (name, cpus, usb, etc)"
+      r << "\t#{bname} [options] <vm_name> <command>       - make some action (start, reset, etc) on VM"
+
+      r << ""
+      r << "COMMANDS:"
+#      (COMMANDS+['snapshots']).sort.each do |c|
+#        r << "\t#{c}"
+#      end
+      r << "\t" + _join_by_width(COMMANDS+['snapshots'], newline: ",\n\t", max_length: 64 )
+      r << ""
+      r << "OPTIONS:"
+      r.join("\n")
+    end
+
+    def examples
+      bname = File.basename($0)
+      space = " "*bname.size
+      r = []
+      r << "EXAMPLES:"
+      r << %Q{\t#{bname} -v                      - list VMs with memory and dir sizes}
+      r << %Q{\t#{bname} "d{1-10}" list          - list only VMs named 'd1','d2','d3',...,'d10'}
+      r << %Q{\t#{bname} "test*" start           - start VMs which name starts with 'test'}
+      r << %Q{\t#{bname} "v[ace]" cpus=2         - set 'number of cpus'=2 on VMs named 'va','vc','ve'}
+      r << %Q{\t#{bname} d0                      - list all parameters of VM named 'd0'}
+      r << %Q{\t#{bname} d0 clone -c 10 -S last  - make 10 new linked clones of vm 'd0' using the}
+      r << %Q{\t#{space}                           latest hdd snapshot, if any}
+      r << %Q{\t#{bname} d0 clone -c 10 -S new   - make ONE new shapshot of VM 'd0' and then make}
+      r << %Q{\t#{space}                           10 new clones linked to this snapshot}
+      r << %Q{\t#{bname} "tmp?" delete           - try to destroy all VMs which name is 4 letters long}
+      r << %Q{\t#{space}                           and starts with 'tmp'}
+      r << %Q{\t#{bname} ae340207-f472-4d63-80e7-855fca6808cb}
+      r << %Q{\t#{space}                         - list all parameters of VM with this GUID}
+      r << %Q{\t#{bname} --no-glob "*wtf?!*" rm  - destroy VM which name is '*wtf?!*'}
       r.join("\n")
     end
 
@@ -34,8 +74,9 @@ module VBOX
       @options = { :verbose => 0 }
       optparser = OptionParser.new do |opts|
         opts.banner = banner
+        opts.summary_indent = "\t"
 
-        opts.on "-m", "--[no-]multiple",
+        opts.on "-g", "--[no-]glob",
         "(default: auto) assume <vm_name> is a wildcard,",
         "and run on multiple VMs.",
         "All glob(7) patterns like *,?,[a-z] are supported",
@@ -53,7 +94,7 @@ module VBOX
           @options[:clones] = x
         end
         a = 'new last take make'.split.map{ |x| [x, x.upcase] }.flatten
-        opts.on "-snapshot", "--snapshot MODE", a, "clone: use LAST shapshot or make NEW" do |x|
+        opts.on "-S", "--snapshot MODE", a, "clone: use LAST shapshot or make NEW" do |x|
           @options[:snapshot] = x.downcase
         end
         opts.on "-H", "--headless", "start: start VM in headless mode" do
@@ -64,7 +105,7 @@ module VBOX
           exit
         end
       end
-      @help = optparser.help
+      @help = optparser.help + "\n" + examples
       @argv = optparser.parse(@argv)
 
       # disable glob matching if first arg is a UUID
