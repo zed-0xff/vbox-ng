@@ -42,4 +42,13 @@ describe "VBOX::VM" do
   describe :dir_size do
     VBOX::VM.first.dir_size.should > 0
   end
+
+  %w'start pause resume reset poweroff savestate acpipowerbutton acpisleepbutton destroy clone'.each do |action|
+    action << "!"
+    describe action do
+      it "should respond to #{action}" do
+        VBOX::VM.first.should respond_to(action)
+      end
+    end
+  end
 end

@@ -6,6 +6,32 @@ module VBOX
       @all_vars = {}
     end
 
+    %w'start pause resume reset poweroff savestate acpipowerbutton acpisleepbutton destroy'.each do |action|
+      define_method "#{action}!" do
+        VBOX.api.send( action, uuid || name )
+      end
+    end
+
+    def clone! params
+      raise "argument must be a Hash" unless params.is_a?(Hash)
+      raise "no :snapshot key" unless params[:snapshot]
+      r = VBOX.api.clone self.name, params
+      case r
+      when Array
+        if r.first.is_a?(VM)
+          r
+        else
+          r.map{ |name| VM.find(name) }
+        end
+      when String
+        VM.find(r)
+      when nil
+        nil
+      else
+        r
+      end
+    end
+
     def dir_size
       @dir_size ||=
         begin

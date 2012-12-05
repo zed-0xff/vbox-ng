@@ -8,6 +8,8 @@ module VBOX
   Snapshot = Struct.new :name, :uuid
 
   class CmdLineAPI
+    attr_accessor :options
+
     def initialize options={}
       @options = options
       @options[:verbose] ||= 2 if @options[:dry_run]
@@ -28,7 +30,7 @@ module VBOX
       puts "[.] #{args.inspect}".gray if @options[:verbose] >= 2
       exit if @options[:dry_run]
       r = super
-      exit 1 unless $?.success?
+      #exit 1 unless $?.success?
       r
     end
 
@@ -48,6 +50,10 @@ module VBOX
         next unless v
         vm.all_vars[k] = v # not stripping quotes here to save some CPU time
         case k
+        when 'name'
+          vm.name = v.strip.sub(/^"/,'').sub(/"$/,'')
+        when 'UUID'
+          vm.uuid = v.strip.sub(/^"/,'').sub(/"$/,'')
         when 'memory'
           vm.memory_size = v.to_i
         when 'VMState'
@@ -186,18 +192,28 @@ module VBOX
       r == '' ? nil : r
     end
 
-    def clone old_vm_name
+    def clone old_vm_name, params = {}
       @clone_use_snapshot = nil
-      (@options[:clones] || 1).times{ _clone(old_vm_name) }
+      params = @options.merge(params)
+      n = params[:clones] || 1
+      if n > 1
+        # return array of clones
+        n.times.map{ _clone(old_vm_name, params) }
+      elsif n == 1
+        # return one clone
+        _clone(old_vm_name, params)
+      else
+        raise "invalid count of clones = #{n.inspect}"
+      end
     end
 
-    def _clone old_vm_name
+    def _clone old_vm_name, params
       args = []
-      if new_vm_name = @options['name'] || _gen_vm_name(old_vm_name)
+      if new_vm_name = params['name'] || _gen_vm_name(old_vm_name)
         args += ["--name", new_vm_name]
       end
 
-      snapshot = @clone_use_snapshot ||= case @options[:snapshot]
+      snapshot = @clone_use_snapshot ||= case params[:snapshot].to_s
         when 'new', 'take', 'make'
           take_snapshot(old_vm_name, new_vm_name ? {:name => "for #{new_vm_name}"} : {})
         when 'last'
@@ -216,6 +232,7 @@ module VBOX
       args += ["--snapshot", snapshot.uuid]
 
       system "VBoxManage", "clonevm", old_vm_name, *args
+      return false unless $?.success?
 
       get_vm_info(old_vm_name).each do |k,v|
         if k =~ /^macaddress/
@@ -230,6 +247,7 @@ module VBOX
           end
         end
       end
+      new_vm_name
     end
 
     def modify name, k, v, params = {}
@@ -243,5 +261,6 @@ module VBOX
     def delete name
       system "VBoxManage", "unregistervm", name, "--delete"
     end
+    alias :destroy :delete
   end
 end
