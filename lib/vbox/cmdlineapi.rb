@@ -5,7 +5,6 @@ module VBOX
 
   COMMANDS = %w'start pause resume reset poweroff savestate acpipowerbutton acpisleepbutton clone delete show'
 
-  VMInfo = Struct.new :name, :uuid, :memory_size, :dir_size, :state
   Snapshot = Struct.new :name, :uuid
 
   class CmdLineAPI
@@ -68,7 +67,7 @@ module VBOX
       r = []
       data.strip.each_line do |line|
         if line[UUID_RE]
-          vm = VMInfo.new
+          vm = VM.new
           vm.uuid = $&
           vm.name = line.gsub($&, '').strip.sub(/^"/,'').sub(/"$/,'')
           r << vm
