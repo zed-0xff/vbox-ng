@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 require 'awesome_print'
+#require 'shellwords'
+require 'open3'
 
 module VBOX
 
@@ -16,24 +18,54 @@ module VBOX
       @options[:verbose] ||= 0
     end
 
-    # run as in backtick operator, and return result
-    def ` cmd
-      puts "[.] #{cmd}".gray if @options[:verbose] >= 2
+    private
+    def vboxmanage *args
+      args = args.map do |arg|
+        case arg
+        when Hash
+          arg.map{ |k,v| ["--#{k}", v == '' ? nil : v.to_s] }
+        else
+          arg.to_s
+        end
+      end.flatten.compact
+
+      puts "[.] VBoxManage #{args.join(' ')}".gray if @options[:verbose] >= 2
       exit if @options[:dry_run]
-      r = super
-      #exit 1 unless $?.success?
-      r
+
+      stdout = stderr = nil
+      Open3.popen3("VBoxManage", *args.map(&:to_s)) do |i,o,e|
+        i.close
+        stdout = o.read
+        stderr = e.read
+      end
+
+      if @options[:verbose] > 3
+        STDERR.puts(stderr.strip.red)
+        puts(stdout.strip) if @options[:verbose] > 4
+      end
+
+      stdout
     end
 
-    # run as in system() call
-    def system *args
-      puts "[.] #{args.inspect}".gray if @options[:verbose] >= 2
-      exit if @options[:dry_run]
-      r = super
-      #exit 1 unless $?.success?
-      r
-    end
+#    # run as in backtick operator, and return result
+#    def ` cmd
+#      puts "[.] #{cmd}".gray if @options[:verbose] >= 2
+#      exit if @options[:dry_run]
+#      r = super
+#      #exit 1 unless $?.success?
+#      r
+#    end
+#
+#    # run as in system() call
+#    def system *args
+#      puts "[.] #{args.inspect}".gray if @options[:verbose] >= 2
+#      exit if @options[:dry_run]
+#      r = super
+#      #exit 1 unless $?.success?
+#      r
+#    end
 
+    public
     def get_vm_details vm_or_name_or_uuid
       name_or_uuid = case vm_or_name_or_uuid
         when String
@@ -41,33 +73,24 @@ module VBOX
           vm_or_name_or_uuid
         when VM
           vm = vm_or_name_or_uuid
-          vm.uuid
+          vm.uuid || vm.name
         end
 
       h = {}
-      data = `VBoxManage showvminfo "#{name_or_uuid}" --machinereadable`
+      data = vboxmanage :showvminfo, name_or_uuid, "--machinereadable"
       data.each_line do |line|
         k,v = line.strip.split('=',2)
         next unless v
         h[k] = v
-#        vm.all_vars[k] = v # not stripping quotes here to save some CPU time
-#        case k
-#        when 'name'
-#          vm.name = v.strip.sub(/^"/,'').sub(/"$/,'')
-#        when 'UUID'
-#          vm.uuid = v.strip.sub(/^"/,'').sub(/"$/,'')
-#        when 'memory'
-#          vm.memory_size = v.to_i
-#        when 'VMState'
-#          vm.state = v.tr('"','').to_sym
-##        when 'CfgFile'
-##          dir = File.dirname(v.tr('"',''))
-##          s = `du -s -BM "#{dir}"`
-##          vm.dir_size = s.split("\t").first.tr("M","")
-#        end
       end
-#      (vm.name && vm.uuid) ? vm : nil
       h.empty? ? nil : h
+    end
+
+    def createvm vm
+      options = { :name => vm.name, :register => '' }
+      options[:uuid] = vm.uuid if vm.uuid
+      a = vboxmanage :createvm, options
+      $?.success?
     end
 
     # for natural string sort order
@@ -78,7 +101,7 @@ module VBOX
 
     def list_vms params = {}
       vms = []
-      `VBoxManage list vms`.strip.each_line do |line|
+      vboxmanage(:list, :vms).strip.each_line do |line|
         if line[UUID_RE]
           vm = VM.new
           vm.uuid = $&
@@ -90,7 +113,7 @@ module VBOX
         # second pass
         h = Hash[*vms.map{ |vm| [vm.uuid, vm] }.flatten]
         uuid = nil # declare variable for inner loop
-        `VBoxManage list runningvms`.strip.each_line do |line|
+        vboxmanage(:list, :runningvms).strip.each_line do |line|
           h[uuid].state = :running if (uuid=line[UUID_RE]) && h[uuid]
         end
       end
@@ -98,9 +121,8 @@ module VBOX
     end
 
     def get_vm_info name
-      data = `VBoxManage showvminfo "#{name}" --machinereadable`
       h = {}
-      data.each_line do |line|
+      vboxmanage(:showvminfo, name, "--machinereadable").each_line do |line|
         line.strip!
         k,v = line.split('=',2)
         h[k] = v
@@ -116,20 +138,20 @@ module VBOX
     end
 
     COMMANDS.each do |cmd|
-      class_eval <<-EOF unless method_defined?(cmd.to_sym)
-        def #{cmd} name
-          system "VBoxManage", "controlvm", name, "#{cmd}"
+      unless method_defined?(cmd.to_sym)
+        define_method(cmd) do |name|
+          vboxmanage :controlvm, name, cmd
         end
-      EOF
+      end
     end
 
     def start name
       if ENV['DISPLAY'] && !@options[:headless]
-        system "VBoxManage", "startvm", name
+        vboxmanage :startvm, name
       else
         puts "[.] $DISPLAY is not set, assuming --headless".gray unless @options[:headless]
         @options[:headless] = true
-        system "VBoxManage", "startvm", name, "--type", "headless"
+        vboxmanage :startvm, name, :type => :headless
       end
     end
 
@@ -137,7 +159,7 @@ module VBOX
     def get_snapshots _name
       r = []
       name = uuid = nil
-      `VBoxManage snapshot "#{_name}" list --machinereadable`.strip.each_line do |line|
+      vboxmanage(:snapshot, _name, 'list', '--machinereadable').strip.each_line do |line|
         k,v = line.strip.split('=',2)
         next unless v
         v = v.strip.sub(/^"/,'').sub(/"$/,'')
@@ -188,7 +210,7 @@ module VBOX
     end
 
     def take_snapshot vm_name, params = {}
-      system "VBoxManage", "snapshot", vm_name, "take", params[:name] || "noname"
+      vboxmanage "snapshot", vm_name, "take", params[:name] || "noname"
       exit 1 unless $?.success?
       get_snapshots(vm_name).last
     end
@@ -214,9 +236,9 @@ module VBOX
     end
 
     def _clone old_vm_name, params
-      args = []
+      args = {}
       if new_vm_name = params['name'] || _gen_vm_name(old_vm_name)
-        args += ["--name", new_vm_name]
+        args[:name] = new_vm_name
       end
 
       snapshot = @clone_use_snapshot ||= case params[:snapshot].to_s
@@ -233,11 +255,11 @@ module VBOX
         exit 1
       end
 
-      args += ["--options","link"]
-      args += ["--register"]
-      args += ["--snapshot", snapshot.uuid]
+      args[:options]  = :link
+      args[:register] = ''
+      args[:snapshot] = snapshot.uuid
 
-      system "VBoxManage", "clonevm", old_vm_name, *args
+      vboxmanage :clonevm, old_vm_name, args
       return false unless $?.success?
 
       get_vm_info(old_vm_name).each do |k,v|
@@ -257,7 +279,7 @@ module VBOX
     end
 
     def modify name, k, v, params = {}
-      system "VBoxManage", "modifyvm", name, "--#{k}", v
+      vboxmanage :modifyvm, name, k => v
       if $?.success? && !params[:quiet]
         h = get_vm_info(k == 'name' ? v : name)
         puts "#{k}=#{h[k]}"
@@ -265,7 +287,7 @@ module VBOX
     end
 
     def delete name
-      system "VBoxManage", "unregistervm", name, "--delete"
+      vboxmanage :unregistervm, name, "--delete"
     end
     alias :destroy :delete
   end
