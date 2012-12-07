@@ -30,6 +30,7 @@ module VBOX
       end
       @metadata
     end
+    alias :fetch_metadata :metadata
 
     %w'start pause resume reset poweroff savestate acpipowerbutton acpisleepbutton destroy'.each do |action|
       define_method "#{action}!" do |*args|

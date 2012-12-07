@@ -126,8 +126,9 @@ module VBOX
       puts "%-*s %5s %6s  %-12s %s".gray % [longest, *%w'NAME MEM DIRSZ STATE UUID']
       vms.each do |vm|
         if @options[:verbose] > 0
+          vm.fetch_metadata
           state = (vm.state == :poweroff) ? '' : vm.state.to_s.upcase
-          s = sprintf "%-*s %5d %6s  %-12s %s", longest, vm.name, vm.memory_size||0, vm.dir_size||0,
+          s = sprintf "%-*s %5d %6s  %-12s %s", longest, vm.name, vm.memory_size, vm.dir_size,
             state, vm.uuid
         else
           state = (vm.state == :poweroff) ? '' : vm.state.to_s.upcase
