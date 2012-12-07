@@ -156,11 +156,14 @@ module VBOX
       end
     end
 
-    def start name
-      if ENV['DISPLAY'] && !@options[:headless]
+    def start name, options = {}
+      headless = @options[:headless]
+      headless =  options[:headless] if options.key?(:headless)
+
+      if ENV['DISPLAY'] && !headless
         vboxmanage :startvm, name
       else
-        puts "[.] $DISPLAY is not set, assuming --headless".gray unless @options[:headless]
+        puts "[.] $DISPLAY is not set, assuming --headless".gray unless headless
         @options[:headless] = true
         vboxmanage :startvm, name, :type => :headless
       end

@@ -232,6 +232,17 @@ module VBOX
       vm.save
     end
 
+    # start VM
+    def vm_cmd_start vm
+      vm.start! :headless => @options[:headless]
+    end
+
+    # stop VM
+    def vm_cmd_poweroff vm
+      vm.poweroff!
+    end
+    alias :vm_cmd_stop :vm_cmd_poweroff
+
     def vm_cmd_clone
       # TODO: page fusion
     end
@@ -246,6 +257,13 @@ module VBOX
         # vbox list "a*"
         # vbox "a*" list
         @argv.delete_at(@argv.index('list') || 999) # delete only 1st 'list' entry
+        list_vms @argv.first
+      elsif @argv.empty? || (@argv.size <= 2 && @argv.include?('ls'))
+        # vbox
+        # vbox ls
+        # vbox ls "a*"
+        # vbox "a*" ls
+        @argv.delete_at(@argv.index('ls') || 999) # delete only 1st 'ls' entry
         list_vms @argv.first
       else
         # vbox VM
