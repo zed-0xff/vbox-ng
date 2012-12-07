@@ -237,6 +237,28 @@ module VBOX
       vm.start! :headless => @options[:headless]
     end
 
+    # pause VM
+    def vm_cmd_pause vm
+      vm.pause!
+    end
+
+    # resume VM
+    def vm_cmd_resume vm
+      vm.resume!
+    end
+    alias :vm_cmd_unpause :vm_cmd_resume
+
+    # reset VM
+    def vm_cmd_reset vm
+      vm.reset!
+    end
+
+    # save VM state
+    def vm_cmd_savestate vm
+      vm.savestate!
+    end
+    alias :vm_cmd_save_state :vm_cmd_savestate
+
     # stop VM
     def vm_cmd_poweroff vm
       vm.poweroff!
