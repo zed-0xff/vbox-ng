@@ -44,27 +44,30 @@ module VBOX
           vm.uuid
         end
 
+      h = {}
       data = `VBoxManage showvminfo "#{name_or_uuid}" --machinereadable`
       data.each_line do |line|
         k,v = line.strip.split('=',2)
         next unless v
-        vm.all_vars[k] = v # not stripping quotes here to save some CPU time
-        case k
-        when 'name'
-          vm.name = v.strip.sub(/^"/,'').sub(/"$/,'')
-        when 'UUID'
-          vm.uuid = v.strip.sub(/^"/,'').sub(/"$/,'')
-        when 'memory'
-          vm.memory_size = v.to_i
-        when 'VMState'
-          vm.state = v.tr('"','').to_sym
-#        when 'CfgFile'
-#          dir = File.dirname(v.tr('"',''))
-#          s = `du -s -BM "#{dir}"`
-#          vm.dir_size = s.split("\t").first.tr("M","")
-        end
+        h[k] = v
+#        vm.all_vars[k] = v # not stripping quotes here to save some CPU time
+#        case k
+#        when 'name'
+#          vm.name = v.strip.sub(/^"/,'').sub(/"$/,'')
+#        when 'UUID'
+#          vm.uuid = v.strip.sub(/^"/,'').sub(/"$/,'')
+#        when 'memory'
+#          vm.memory_size = v.to_i
+#        when 'VMState'
+#          vm.state = v.tr('"','').to_sym
+##        when 'CfgFile'
+##          dir = File.dirname(v.tr('"',''))
+##          s = `du -s -BM "#{dir}"`
+##          vm.dir_size = s.split("\t").first.tr("M","")
+#        end
       end
-      (vm.name && vm.uuid) ? vm : nil
+#      (vm.name && vm.uuid) ? vm : nil
+      h.empty? ? nil : h
     end
 
     # for natural string sort order
@@ -74,21 +77,24 @@ module VBOX
     end
 
     def list_vms params = {}
-      if params[:running]
-        data = `VBoxManage list runningvms`
-      else
-        data = `VBoxManage list vms`
-      end
-      r = []
-      data.strip.each_line do |line|
+      vms = []
+      `VBoxManage list vms`.strip.each_line do |line|
         if line[UUID_RE]
           vm = VM.new
           vm.uuid = $&
           vm.name = line.gsub($&, '').strip.sub(/^"/,'').sub(/"$/,'')
-          r << vm
+          vms << vm
         end
       end
-      r.sort_by{ |vm| _naturalize(vm.name) }
+      if params[:include_state]
+        # second pass
+        h = Hash[*vms.map{ |vm| [vm.uuid, vm] }.flatten]
+        uuid = nil # declare variable for inner loop
+        `VBoxManage list runningvms`.strip.each_line do |line|
+          h[uuid].state = :running if (uuid=line[UUID_RE]) && h[uuid]
+        end
+      end
+      vms.sort_by{ |vm| _naturalize(vm.name) }
     end
 
     def get_vm_info name

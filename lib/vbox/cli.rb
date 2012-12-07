@@ -11,6 +11,7 @@ module VBOX
       @argv = argv
     end
 
+    private
     def _join_by_width words, params = {}
       params[:max_length] ||= 30
       params[:separator]  ||= ", "
@@ -28,6 +29,7 @@ module VBOX
       lines.join params[:newline]
     end
 
+    public
     def banner
       bname = File.basename($0)
       r = []
@@ -70,7 +72,7 @@ module VBOX
       r.join("\n")
     end
 
-    def run
+    def parse_argv
       @options = { :verbose => 0 }
       optparser = OptionParser.new do |opts|
         opts.banner = banner
@@ -112,41 +114,99 @@ module VBOX
       unless @options.key?(:multiple)
         @options[:multiple] = "{#{@argv.first}}" !~ UUID_RE
       end
+    end
 
-      @vbox = VBOX::CmdLineAPI.new(@options)
+    def list_vms name_or_glob
+      vms = _find_vms name_or_glob
+
+      longest = (vms.map(&:name).map(&:size)+[4]).max
+
+      puts "%-*s %5s %6s  %-12s %s".gray % [longest, *%w'NAME MEM DIRSZ STATE UUID']
+      vms.each do |vm|
+        if @options[:verbose] > 0
+          state = (vm.state == :poweroff) ? '' : vm.state.to_s.upcase
+          s = sprintf "%-*s %5d %6s  %-12s %s", longest, vm.name, vm.memory_size||0, vm.dir_size||0,
+            state, vm.uuid
+        else
+          state = (vm.state == :poweroff) ? '' : vm.state.to_s.upcase
+          s = sprintf "%-*s %5s %6s  %-12s %s", longest, vm.name, '', '',
+            state, vm.uuid
+        end
+        s = s.green if vm.state == :running
+        puts s
+      end
+    end
+
+    def vm_cmd name_or_glob, cmd='show', *args
+      _find_vms(name_or_glob).each do |vm|
+        send "vm_cmd_#{cmd}", vm, *args
+      end
+    end
+
+    SHOW_CATEGORIES = {
+      'GENERAL'          => %w'name cpus memory vram cpuexecutioncap UUID VMState',
+      'VIRTUALIZATION OPTIONS' =>
+        [
+          /^(groups|ostype|hwvirt|nestedpag|largepag|vtxvpid|ioapic|pagefusion|hpet|synthcpu|pae)/,
+          /accelerate/, /balloon/i
+        ],
+      'NET'              => [ /^(nic|nat|mac|bridge|cable|hostonly)/, /^sock/, /^tcp/ ],
+      'STORAGE'          => [ /storage/, /SATA/, /IDE/ ],
+      'VIRTUAL HARDWARE' => [ /^(lpt|uart|audio|ehci|usb|hardware|chipset|monitor|hid|acpi|firmware|USB)/ ],
+      'TELEPORTING'      => [ /teleport/i, /cpuid/i ],
+      'SHARED FOLDERS'   => [ /SharedFolder/ ]
+    }
+
+    def vm_cmd_show vm
+      vars = vm.all_vars.dup
+      unless @options[:verbose] > 0
+        vars.delete_if{ |k,v| %w["none" "off" "disabled" "emptydrive" "" 0 "0"].include?(v) }
+      end
+      maxlen = vars.keys.map(&:size).max
+
+      SHOW_CATEGORIES.each do |name, filters|
+        keys = []; title = nil
+        filters.each do |filter|
+          keys += filter.is_a?(Regexp) ? vars.keys.find_all{ |key| key =~ filter } : [filter]
+        end
+        keys.each do |k|
+          if v = vars.delete(k)
+            puts (title = "--- #{name} ".ljust(80,'-')) unless title
+            printf("  %-*s: %s\n", maxlen, k, v)
+          end
+        end
+      end
+      puts "--- MISC ".ljust(80,'-')
+      vars.each do |k,v|
+        printf("  %-*s: %s\n", maxlen, k, v)
+      end
+    end
+
+    def vm_cmd_clone
+      # TODO: page fusion
+    end
+
+    def run
+      parse_argv
+      # now @argv contains only VM name and commands, if any
+
+      if @argv.empty? || (@argv.size <= 2 && @argv.include?('list'))
+        # vbox
+        # vbox list
+        # vbox list "a*"
+        # vbox "a*" list
+        @argv.delete_at(@argv.index('list') || 999) # delete only 1st 'list' entry
+        list_vms @argv.first
+      else
+        # vbox VM
+        # vbox VM show
+        # vbox VM ...
+        #  - where 'VM' can be vm name or glob or UUID
+        vm_cmd *@argv
+      end
+      return
 
       if @argv.size == 0 || @argv.last == 'list'
-        vms = @vbox.list_vms
-        @vbox.list_vms(:running => true).each do |vm|
-          vms.find{ |vm1| vm1.uuid == vm.uuid }.state = :running
-        end
-
-        if @argv.size == 2 && @argv.last == 'list'
-          if @options[:multiple]
-            @globs = _expand_glob(@argv.first).flatten
-            vms = vms.keep_if{ |vm| _fnmatch(vm.name) }
-          else
-            vms = vms.keep_if{ |vm| vm.name == @argv.first }
-          end
-        end
-
-        longest = (vms.map(&:name).map(&:size)+[4]).max
-
-        puts "%-*s %5s %6s  %-12s %s".gray % [longest, *%w'NAME MEM DIRSZ STATE UUID']
-        vms.each do |vm|
-          if @options[:verbose] > 0
-            @vbox.get_vm_details vm
-            state = (vm.state == :poweroff) ? '' : vm.state.to_s.upcase
-            s = sprintf "%-*s %5d %6s  %-12s %s", longest, vm.name, vm.memory_size||0, vm.dir_size||0,
-              state, vm.uuid
-          else
-            state = (vm.state == :poweroff) ? '' : vm.state.to_s.upcase
-            s = sprintf "%-*s %5s %6s  %-12s %s", longest, vm.name, '', '',
-              state, vm.uuid
-          end
-          s = s.green if vm.state == :running
-          puts s
-        end
       else
         name = @argv.shift
         cmd  = @argv.shift || 'show' # default command is 'show'
@@ -160,24 +220,21 @@ module VBOX
       end
     end
 
-    # expand globs like "d{1-30}" to d1,d2,d3,d4,...,d29,d30
-    def _expand_glob glob
-      if glob[/\{(\d+)-(\d+)\}/]
-        r = []
-        $1.to_i.upto($2.to_i) do |i|
-          r << _expand_glob(glob.sub($&,i.to_s))
-        end
-        r
-      else
-        [glob]
-      end
-    end
+    private
 
-    def _fnmatch fname
-      @globs.each do |glob|
-        return true if File.fnmatch(glob, fname)
+    def _find_vms name_or_glob
+      if name_or_glob
+        if @options[:multiple]
+          # glob
+          VM.find_all(name_or_glob)
+        else
+          # exact name
+          [ VM.find(name_or_glob) ]
+        end
+      else
+        # all VMs
+        VM.all
       end
-      false
     end
 
     def _run_multiple_cmd cmd, name

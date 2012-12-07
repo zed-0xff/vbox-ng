@@ -56,4 +56,26 @@ describe "VBOX::VM" do
       end
     end
   end
+
+  describe :expand_glob do
+    def _glob2arr glob
+      r = []
+      VBOX::VM.expand_glob(glob){ |x| r << x }
+      r
+    end
+
+    {
+      'xxx'                  => ['xxx'],
+      'xx*'                  => ['xx*'],
+      'a{1-2}'               => ['a1', 'a2'],
+      '{0-11}b'              => (0..11).map{ |x| "#{x}b" },
+      'a{0-999}b'            => (0..999).map{ |x| "a#{x}b" },
+      '{1-10}.{1-10}.{1-10}' => (0..999).map{ |x| ("%03i" % x).split('').join('.').gsub('0','10') }
+    }.each do |k,v|
+      it "should expand #{k.inspect}" do
+        _glob2arr(k).sort.should == v.sort
+      end
+    end
+
+  end
 end
