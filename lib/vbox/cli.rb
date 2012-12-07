@@ -58,7 +58,7 @@ module VBOX
       r << %Q{\t#{bname} -v                        - list VMs with memory and dir sizes}
       r << %Q{\t#{bname} "d{1-10}" list            - list only VMs named 'd1','d2','d3',...,'d10'}
       r << %Q{\t#{bname} "test*" start             - start VMs which name starts with 'test'}
-      r << %Q{\t#{bname} "v[ace]" cpus=2           - set 'number of cpus'=2 on VMs named 'va','vc','ve'}
+      r << %Q{\t#{bname} "v[ace]" cpus=2 acpi=on   - set number of cpus & ACPI on VMs named 'va','vc','ve'}
       r << %Q{\t#{bname} d0                        - list all parameters of VM named 'd0'}
       r << %Q{\t#{bname} d0 clone -c 10 -S last    - make 10 new linked clones of vm 'd0' using the}
       r << %Q{\t#{space}                             latest hdd snapshot, if any}
@@ -114,6 +114,8 @@ module VBOX
       unless @options.key?(:multiple)
         @options[:multiple] = "{#{@argv.first}}" !~ UUID_RE
       end
+
+      VBOX.verbosity = @options[:verbose]
     end
 
     def list_vms name_or_glob
@@ -138,8 +140,32 @@ module VBOX
     end
 
     def vm_cmd name_or_glob, cmd='show', *args
-      _find_vms(name_or_glob).each do |vm|
-        send "vm_cmd_#{cmd}", vm, *args
+      vms = _find_vms(name_or_glob)
+      if vms.empty?
+        if cmd == 'create'
+          return vm_cmd_create(name_or_glob)
+        else
+          STDERR.puts "[?] no VMs matching #{name_or_glob.inspect}".red
+          exit 1
+        end
+      end
+
+      method =
+        if cmd['=']
+          # set some VM variables:
+          # vbox vm_name foo=bar bar=baz xxx=yyy
+          args.unshift(cmd)
+          "vm_cmd_set"
+        else
+          "vm_cmd_#{cmd}"
+        end
+
+      unless self.respond_to?(method)
+        STDERR.puts "[?] unknown command #{cmd.inspect}".red
+        exit 1
+      end
+      vms.each do |vm|
+        send method, vm, *args
       end
     end
 
@@ -158,17 +184,11 @@ module VBOX
       'SHARED FOLDERS'   => [ /SharedFolder/ ]
     }
 
-    private
-    # strip quotes
-    def qstrip s
-      s.sub /\A"(.+)"\Z/, '\1'
-    end
-
     public
     def vm_cmd_show vm
-      vars = vm.all_vars.dup
+      vars = vm.metadata.dup
       unless @options[:verbose] > 0
-        vars.delete_if{ |k,v| %w["none" "off" "disabled" "emptydrive" "" 0 "0"].include?(v) }
+        vars.delete_if{ |k,v| ["none","off","disabled","emptydrive","",0,"0",nil].include?(v) }
       end
       maxlen = vars.keys.map(&:size).max
 
@@ -180,14 +200,36 @@ module VBOX
         keys.each do |k|
           if v = vars.delete(k)
             puts (title = "--- #{name} ".ljust(80,'-')) unless title
-            printf("  %-*s: %s\n", maxlen, qstrip(k), qstrip(v))
+            printf("  %-*s: %s\n", maxlen, k, v)
           end
         end
       end
       puts "--- MISC ".ljust(80,'-')
       vars.each do |k,v|
-        printf("  %-*s: %s\n", maxlen, qstrip(k), qstrip(v))
+        printf("  %-*s: %s\n", maxlen, k, v)
       end
+    end
+
+    # create VM
+    def vm_cmd_create name
+      VM.new(:name => name).create!
+    end
+
+    # destroy VM
+    def vm_cmd_destroy vm
+      vm.destroy!
+    end
+    alias :vm_cmd_rm     :vm_cmd_destroy
+    alias :vm_cmd_delete :vm_cmd_destroy
+
+    # set VM variables
+    def vm_cmd_set vm, *args
+      raise "all arguments must contain '='" unless args.all?{ |arg| arg['='] }
+      args.each do |arg|
+        k,v = arg.split("=",2)
+        vm.set_var k, v
+      end
+      vm.save
     end
 
     def vm_cmd_clone
@@ -212,20 +254,6 @@ module VBOX
         #  - where 'VM' can be vm name or glob or UUID
         vm_cmd *@argv
       end
-      return
-
-      if @argv.size == 0 || @argv.last == 'list'
-      else
-        name = @argv.shift
-        cmd  = @argv.shift || 'show' # default command is 'show'
-
-        cmd = ALIASES[cmd] if ALIASES[cmd]
-        if @options[:multiple]
-          _run_multiple_cmd cmd, name
-        else
-          _run_cmd cmd, name
-        end
-      end
     end
 
     private
@@ -242,33 +270,6 @@ module VBOX
       else
         # all VMs
         VM.all
-      end
-    end
-
-    def _run_multiple_cmd cmd, name
-      vms = @vbox.list_vms
-      @globs = _expand_glob(name).flatten
-      vms.each do |vm|
-        if _fnmatch(vm.name)
-          _run_cmd cmd, vm.name
-        end
-      end
-    end
-
-    def _run_cmd cmd, name
-      if COMMANDS.include?(cmd)
-        @vbox.send cmd, name
-      elsif cmd['=']
-        # set some variable, f.ex. "macaddress1=BADC0FFEE000"
-        @vbox.modify name, *cmd.split('=',2)
-      elsif cmd == 'snapshots'
-        @vbox.get_snapshots(name).each do |x|
-          printf "%s  %s\n", x.uuid, x.name
-        end
-      else
-        STDERR.puts "[!] unknown command #{cmd.inspect}".red
-        puts @help
-        exit 1
       end
     end
   end

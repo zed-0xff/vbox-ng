@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 require 'awesome_print'
-#require 'shellwords'
 require 'open3'
 
 module VBOX
@@ -14,11 +13,21 @@ module VBOX
 
     def initialize options={}
       @options = options
-      @options[:verbose] ||= 2 if @options[:dry_run]
-      @options[:verbose] ||= 0
+      @options[:verbose] = VBOX.verbosity
+      @options[:verbose] ||= 2 if @options[:dry_run] && @options[:verbose] < 2
     end
 
     private
+
+    def quiet &block
+      prev_verbose = @options[:verbose]
+      @options[:verbose] = -100
+      r = yield
+    ensure
+      @options[:verbose] = prev_verbose
+      r
+    end
+
     def vboxmanage *args
       args = args.map do |arg|
         case arg
@@ -33,18 +42,24 @@ module VBOX
       exit if @options[:dry_run]
 
       stdout = stderr = nil
-      Open3.popen3("VBoxManage", *args.map(&:to_s)) do |i,o,e|
+      Open3.popen3("VBoxManage", *args.map(&:to_s)) do |i,o,e,x|
         i.close
-        stdout = o.read
-        stderr = e.read
+        stdout = o.read.to_s.strip
+        stderr = e.read.to_s.strip
+        @success = (x ? x.value : $?).success?
       end
 
-      if @options[:verbose] > 3
-        STDERR.puts(stderr.strip.red)
-        puts(stdout.strip) if @options[:verbose] > 4
+      if @options[:verbose] >= 0
+        STDERR.puts( success? ? stderr : stderr.red ) unless stderr.empty?
+        puts(stdout) if @options[:verbose] >= 3 && !stdout.empty?
       end
 
       stdout
+    end
+
+    # internal method that indicates result of recent vboxmanage() cmd
+    def success?
+      @success
     end
 
 #    # run as in backtick operator, and return result
@@ -52,8 +67,7 @@ module VBOX
 #      puts "[.] #{cmd}".gray if @options[:verbose] >= 2
 #      exit if @options[:dry_run]
 #      r = super
-#      #exit 1 unless $?.success?
-#      r
+#      #exit 1 unless success?#      r
 #    end
 #
 #    # run as in system() call
@@ -61,8 +75,7 @@ module VBOX
 #      puts "[.] #{args.inspect}".gray if @options[:verbose] >= 2
 #      exit if @options[:dry_run]
 #      r = super
-#      #exit 1 unless $?.success?
-#      r
+#      #exit 1 unless success?#      r
 #    end
 
     public
@@ -77,11 +90,11 @@ module VBOX
         end
 
       h = {}
-      data = vboxmanage :showvminfo, name_or_uuid, "--machinereadable"
+      data = quiet{ vboxmanage :showvminfo, name_or_uuid, "--machinereadable" }
       data.each_line do |line|
-        k,v = line.strip.split('=',2)
+        k,v = line.split('=',2)
         next unless v
-        h[k] = v
+        h[qstrip(k)] = qstrip(v)
       end
       h.empty? ? nil : h
     end
@@ -90,8 +103,7 @@ module VBOX
       options = { :name => vm.name, :register => '' }
       options[:uuid] = vm.uuid if vm.uuid
       a = vboxmanage :createvm, options
-      $?.success?
-    end
+      success?    end
 
     # for natural string sort order
     # http://stackoverflow.com/questions/4078906/is-there-a-natural-sort-by-method-for-ruby
@@ -101,11 +113,11 @@ module VBOX
 
     def list_vms params = {}
       vms = []
-      vboxmanage(:list, :vms).strip.each_line do |line|
+      vboxmanage(:list, :vms).each_line do |line|
         if line[UUID_RE]
           vm = VM.new
           vm.uuid = $&
-          vm.name = line.gsub($&, '').strip.sub(/^"/,'').sub(/"$/,'')
+          vm.name = qstrip(line.gsub($&, ''))
           vms << vm
         end
       end
@@ -113,28 +125,27 @@ module VBOX
         # second pass
         h = Hash[*vms.map{ |vm| [vm.uuid, vm] }.flatten]
         uuid = nil # declare variable for inner loop
-        vboxmanage(:list, :runningvms).strip.each_line do |line|
+        vboxmanage(:list, :runningvms).each_line do |line|
           h[uuid].state = :running if (uuid=line[UUID_RE]) && h[uuid]
         end
       end
       vms.sort_by{ |vm| _naturalize(vm.name) }
     end
 
+    private
+    # strip quotes
+    def qstrip s
+      s.strip.sub /\A"(.*)"\Z/, '\1'
+    end
+
+    public
     def get_vm_info name
       h = {}
       vboxmanage(:showvminfo, name, "--machinereadable").each_line do |line|
-        line.strip!
         k,v = line.split('=',2)
-        h[k] = v
+        h[qstrip(k)] = qstrip(v)
       end
       h
-    end
-
-    def show name
-      get_vm_info(name).each do |k,v|
-        next if ['"none"', '"off"', '""'].include?(v)
-        puts "#{k}=#{v}"
-      end
     end
 
     COMMANDS.each do |cmd|
@@ -159,10 +170,10 @@ module VBOX
     def get_snapshots _name
       r = []
       name = uuid = nil
-      vboxmanage(:snapshot, _name, 'list', '--machinereadable').strip.each_line do |line|
+      vboxmanage(:snapshot, _name, 'list', '--machinereadable').each_line do |line|
         k,v = line.strip.split('=',2)
         next unless v
-        v = v.strip.sub(/^"/,'').sub(/"$/,'')
+        v = qstrip(v)
         case k
         when /SnapshotName/
           name = v
@@ -211,8 +222,7 @@ module VBOX
 
     def take_snapshot vm_name, params = {}
       vboxmanage "snapshot", vm_name, "take", params[:name] || "noname"
-      exit 1 unless $?.success?
-      get_snapshots(vm_name).last
+      exit 1 unless success?      get_snapshots(vm_name).last
     end
 
     def _name2macpart name
@@ -260,11 +270,10 @@ module VBOX
       args[:snapshot] = snapshot.uuid
 
       vboxmanage :clonevm, old_vm_name, args
-      return false unless $?.success?
-
+      return false unless success?
       get_vm_info(old_vm_name).each do |k,v|
         if k =~ /^macaddress/
-          old_mac = v.tr('"','').downcase
+          old_mac = v.downcase
           puts "[.] old #{k}=#{old_mac}"
           old_automac = _name2macpart(old_vm_name)
           if old_automac && old_mac[-old_automac.size..-1] == old_automac
@@ -278,12 +287,9 @@ module VBOX
       new_vm_name
     end
 
-    def modify name, k, v, params = {}
-      vboxmanage :modifyvm, name, k => v
-      if $?.success? && !params[:quiet]
-        h = get_vm_info(k == 'name' ? v : name)
-        puts "#{k}=#{h[k]}"
-      end
+    def modify vm, vars
+      vboxmanage :modifyvm, vm.uuid || vm.name, vars
+      success?
     end
 
     def delete name

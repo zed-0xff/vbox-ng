@@ -110,4 +110,38 @@ describe "VBOX::VM" do
       vm.name.should == TEST_VM_NAME2
     end
   end
+
+  describe :set_var do
+    it "should set vars" do
+      vm = VBOX::VM.find TEST_VM_NAME
+      h = { 'acpi' => 'on', 'cpus' => 4, 'memory' => 1024, 'vram' => 16 }
+      h.each{ |k,v| vm.set_var k,v }
+      vm.save
+      vm.reload_metadata
+      h.each{ |k,v| vm.metadata[k].to_s.should == v.to_s }
+
+      h = { 'acpi' => 'off', 'cpus' => 2, 'memory' => 512, 'vram' => 8 }
+      h.each{ |k,v| vm.set_var k,v }
+      vm.save
+      vm.reload_metadata
+      h.each{ |k,v| vm.metadata[k].to_s.should == v.to_s }
+    end
+  end
+
+  describe :set_vars do
+    it "should set vars" do
+      vm = VBOX::VM.find TEST_VM_NAME
+      h = { 'acpi' => 'on', 'cpus' => 4, 'memory' => 1024, 'vram' => 16 }
+      vm.set_vars h
+      vm.save
+      vm.reload_metadata
+      h.each{ |k,v| vm.metadata[k].to_s.should == v.to_s }
+
+      h = { 'acpi' => 'off', 'cpus' => 2, 'memory' => 512, 'vram' => 8 }
+      vm.set_vars h
+      vm.save
+      vm.reload_metadata
+      h.each{ |k,v| vm.metadata[k].to_s.should == v.to_s }
+    end
+  end
 end

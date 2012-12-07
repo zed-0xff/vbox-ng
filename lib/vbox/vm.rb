@@ -13,9 +13,13 @@ module VBOX
 
     def _parse_metadata
       return unless @metadata && @metadata.any?
-      @name  = @metadata['name'].strip.sub(/^"/,'').sub(/"$/,'')
-      @uuid  = @metadata['UUID'].strip.sub(/^"/,'').sub(/"$/,'')
-      @state = @metadata['VMState'].tr('"','').to_sym
+      @name  = @metadata['name']
+      @uuid  = @metadata['UUID']
+      @state = @metadata['VMState'].to_sym
+    end
+
+    def deep_copy x
+      Marshal.load(Marshal.dump(x))
     end
 
     public
@@ -40,10 +44,41 @@ module VBOX
       self
     end
 
+    # set some variable: change VM name, memory size, pae, etc
+    def set_var k, v = nil
+      reload_metadata unless @metadata
+      @metadata_orig ||= deep_copy(@metadata)
+
+      if k.is_a?(Hash) && v.nil?
+        k.each do |kk,vv|
+          @metadata[kk.to_s] = vv.to_s
+        end
+      elsif !k.is_a?(Hash) && !v.is_a?(Hash)
+        @metadata[k.to_s] = v.to_s
+      else
+        raise "invalid params combination"
+      end
+    end
+    alias :set_vars :set_var
+
+    # save modified metadata, if any
+    def save
+      return nil if @metadata == @metadata_orig
+      vars = {}
+      @metadata.each do |k,v|
+        vars[k] = v if @metadata[k].to_s != @metadata_orig[k].to_s
+      end
+      VBOX.api.modify self, vars
+    end
+
     # reload all VM metadata info from VirtualBox
     def reload_metadata
       raise "cannot reload metadata if name & uuid are NULL" unless name || uuid
       @metadata = VBOX.api.get_vm_details(self)
+
+      # make a 'deep copy' of @metadata to detect changed vars
+      # dup() or clone() does not fit here b/c they leave hash values linked to each other
+      @metadata_orig = deep_copy(@metadata)
       _parse_metadata
     end
 
@@ -71,7 +106,7 @@ module VBOX
       @dir_size ||=
         begin
           return nil unless v=metadata['CfgFile']
-          dir = File.dirname(v.tr('"',''))
+          dir = File.dirname(v)
           `du -sm "#{dir}"`.split("\t").first.tr("M","").to_i
         end
     end
