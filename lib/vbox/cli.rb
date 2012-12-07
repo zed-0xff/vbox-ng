@@ -152,11 +152,19 @@ module VBOX
         ],
       'NET'              => [ /^(nic|nat|mac|bridge|cable|hostonly)/, /^sock/, /^tcp/ ],
       'STORAGE'          => [ /storage/, /SATA/, /IDE/ ],
+      'SNAPSHOTS'        => [ /snapshot/i ],
       'VIRTUAL HARDWARE' => [ /^(lpt|uart|audio|ehci|usb|hardware|chipset|monitor|hid|acpi|firmware|USB)/ ],
       'TELEPORTING'      => [ /teleport/i, /cpuid/i ],
       'SHARED FOLDERS'   => [ /SharedFolder/ ]
     }
 
+    private
+    # strip quotes
+    def qstrip s
+      s.sub /\A"(.+)"\Z/, '\1'
+    end
+
+    public
     def vm_cmd_show vm
       vars = vm.all_vars.dup
       unless @options[:verbose] > 0
@@ -172,13 +180,13 @@ module VBOX
         keys.each do |k|
           if v = vars.delete(k)
             puts (title = "--- #{name} ".ljust(80,'-')) unless title
-            printf("  %-*s: %s\n", maxlen, k, v)
+            printf("  %-*s: %s\n", maxlen, qstrip(k), qstrip(v))
           end
         end
       end
       puts "--- MISC ".ljust(80,'-')
       vars.each do |k,v|
-        printf("  %-*s: %s\n", maxlen, k, v)
+        printf("  %-*s: %s\n", maxlen, qstrip(k), qstrip(v))
       end
     end
 
