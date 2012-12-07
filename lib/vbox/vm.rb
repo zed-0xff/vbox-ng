@@ -2,8 +2,30 @@ module VBOX
   class VM
     attr_accessor :name, :uuid, :state
 
-    def initialize
-      @all_vars = nil
+    def initialize params = {}
+      @all_vars = params[:all_vars]
+      _parse_all_vars
+      @name = params[:name] if params[:name]
+      @uuid = params[:uuid] if params[:uuid]
+    end
+
+    private
+
+    def _parse_all_vars
+      return unless @all_vars && @all_vars.any?
+      @name  = @all_vars['name'].strip.sub(/^"/,'').sub(/"$/,'')
+      @uuid  = @all_vars['UUID'].strip.sub(/^"/,'').sub(/"$/,'')
+      @state = @all_vars['VMState'].tr('"','').to_sym
+    end
+
+    public
+
+    def all_vars
+      if !@all_vars || @all_vars.empty?
+        @all_vars = VBOX.api.get_vm_details(self)
+        _parse_all_vars
+      end
+      @all_vars
     end
 
     %w'start pause resume reset poweroff savestate acpipowerbutton acpisleepbutton destroy'.each do |action|
@@ -32,16 +54,6 @@ module VBOX
       end
     end
 
-    def all_vars
-      if !@all_vars || @all_vars.empty?
-        @all_vars = VBOX.api.get_vm_details(self)
-        @name  = @all_vars['name'].strip.sub(/^"/,'').sub(/"$/,'')
-        @uuid  = @all_vars['UUID'].strip.sub(/^"/,'').sub(/"$/,'')
-        @state = @all_vars['VMState'].tr('"','').to_sym
-      end
-      @all_vars
-    end
-
     def dir_size
       @dir_size ||=
         begin
@@ -65,7 +77,8 @@ module VBOX
       end
 
       def find name_or_uuid
-        VBOX.api.get_vm_details name_or_uuid
+        r = VBOX.api.get_vm_details name_or_uuid
+        r ? VM.new(:all_vars => r) : nil
       end
       alias :[] :find
 
