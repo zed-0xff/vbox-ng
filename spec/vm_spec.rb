@@ -1,6 +1,25 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
+TEST_VM_NAME = "vbox-ng-test-vm"
+TEST_VM_UUID = 'ae340307-f472-4d63-80e7-855fca6808cb'
+
+TEST_VM_NAME2 = "vbox-ng-test-vm2"
+TEST_VM_UUID2 = 'ae340307-f472-4d63-80e7-855fca6808cc'
+
 describe "VBOX::VM" do
+  before :all do
+    vm = VBOX::VM.find TEST_VM_NAME
+    vm.destroy!.should(be_true) if vm
+
+    vm = VBOX::VM.create! :name => TEST_VM_NAME, :uuid => TEST_VM_UUID
+    vm.should be_instance_of(VBOX::VM)
+  end
+
+  after :all do
+    vm = VBOX::VM.find TEST_VM_NAME
+    vm.destroy!.should(be_true) if vm
+  end
+
   describe "all()" do
     it "returns array" do
       VBOX::VM.all.should be_instance_of(Array)
@@ -16,9 +35,6 @@ describe "VBOX::VM" do
       VBOX::VM.first.should be_instance_of(VBOX::VM)
     end
   end
-
-  TEST_VM_NAME = "d0"
-  TEST_VM_UUID = 'ae340207-f472-4d63-80e7-855fca6808cb'
 
   [:find, :[]].each do |method|
     describe method do
@@ -76,6 +92,22 @@ describe "VBOX::VM" do
         _glob2arr(k).sort.should == v.sort
       end
     end
+  end
 
+  describe :create do
+    before(:all) do
+      vm = VBOX::VM.find TEST_VM_NAME2
+      vm.destroy!.should(be_true) if vm
+    end
+
+    it "should create VM" do
+      vm = VBOX::VM.new :name => TEST_VM_NAME2
+      Array(vm.metadata).should be_empty
+      vm = vm.create!
+      vm.should be_instance_of(VBOX::VM)
+      vm.metadata.size.should > 10
+      vm.reload_metadata
+      vm.name.should == TEST_VM_NAME2
+    end
   end
 end
