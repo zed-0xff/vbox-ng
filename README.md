@@ -1,4 +1,4 @@
-vbox-ng
+vbox-ng    [![Build Status](https://secure.travis-ci.org/zed-0xff/vbox-ng.png)][Continuous Integration] [![Dependency Status](https://gemnasium.com/zed-0xff/vbox-ng.png)][Dependencies]
 ======
 
 Description
