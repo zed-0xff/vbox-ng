@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "vbox-ng"
-  s.version = "0.1.3"
+  s.version = "1.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrey \"Zed\" Zaikin"]
-  s.date = "2012-12-05"
+  s.date = "2012-12-08"
   s.description = "Create/start/stop/reboot/modify dozens of VirtualBox VMS with one short command."
   s.email = "zed.0xff@gmail.com"
   s.executables = ["vbox"]
@@ -33,7 +33,10 @@ Gem::Specification.new do |s|
     "lib/vbox/cli.rb",
     "lib/vbox/cmdlineapi.rb",
     "lib/vbox/vm.rb",
+    "spec/cmdlineapi_spec.rb",
     "spec/spec_helper.rb",
+    "spec/support/vboxmanage_simulator.rb",
+    "spec/support/vboxmanage_simulator.yml",
     "spec/vm_spec.rb",
     "vbox-ng.gemspec"
   ]
@@ -49,19 +52,22 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<awesome_print>, ["~> 1.1.0"])
       s.add_development_dependency(%q<rspec>, ["~> 2.12.0"])
-      s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
+      s.add_development_dependency(%q<bundler>, [">= 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.8.4"])
+      s.add_development_dependency(%q<simplecov>, [">= 0"])
     else
       s.add_dependency(%q<awesome_print>, ["~> 1.1.0"])
       s.add_dependency(%q<rspec>, ["~> 2.12.0"])
-      s.add_dependency(%q<bundler>, ["~> 1.0.0"])
+      s.add_dependency(%q<bundler>, [">= 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.8.4"])
+      s.add_dependency(%q<simplecov>, [">= 0"])
     end
   else
     s.add_dependency(%q<awesome_print>, ["~> 1.1.0"])
     s.add_dependency(%q<rspec>, ["~> 2.12.0"])
-    s.add_dependency(%q<bundler>, ["~> 1.0.0"])
+    s.add_dependency(%q<bundler>, [">= 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.8.4"])
+    s.add_dependency(%q<simplecov>, [">= 0"])
   end
 end
 
