@@ -6,6 +6,7 @@ TEST_VM_UUID = 'ae340307-f472-4d63-80e7-855fca6808cb'
 TEST_VM_NAME2 = "vbox-ng-test-vm2"
 TEST_VM_UUID2 = 'ae340307-f472-4d63-80e7-855fca6808cc'
 
+# tests with VBoxManage invocation
 describe "VBOX::VM" do
   before :all do
     vm = VBOX::VM.find TEST_VM_NAME
@@ -54,14 +55,16 @@ describe "VBOX::VM" do
       end
 
       it "finds nothing" do
-        vm = VBOX::VM.send(method, "blah-blah-blah-unexistant-vm-#{rand}-#{rand}-#{rand}")
+        vm = VBOX::VM.send(method, "blah-blah-blah-unexistant-vm-139487098347510")
         vm.should be_nil
       end
     end
   end
 
   describe :dir_size do
-    VBOX::VM.first.dir_size.should > 0
+    it "should be > 0" do
+      VBOX::VM.first.dir_size.should > 0
+    end
   end
 
   %w'start pause resume reset poweroff savestate acpipowerbutton acpisleepbutton destroy clone'.each do |action|
@@ -69,27 +72,6 @@ describe "VBOX::VM" do
     describe action do
       it "should respond to #{action}" do
         VBOX::VM.first.should respond_to(action)
-      end
-    end
-  end
-
-  describe :expand_glob do
-    def _glob2arr glob
-      r = []
-      VBOX::VM.expand_glob(glob){ |x| r << x }
-      r
-    end
-
-    {
-      'xxx'                  => ['xxx'],
-      'xx*'                  => ['xx*'],
-      'a{1-2}'               => ['a1', 'a2'],
-      '{0-11}b'              => (0..11).map{ |x| "#{x}b" },
-      'a{0-999}b'            => (0..999).map{ |x| "a#{x}b" },
-      '{1-10}.{1-10}.{1-10}' => (0..999).map{ |x| ("%03i" % x).split('').join('.').gsub('0','10') }
-    }.each do |k,v|
-      it "should expand #{k.inspect}" do
-        _glob2arr(k).sort.should == v.sort
       end
     end
   end
@@ -144,4 +126,30 @@ describe "VBOX::VM" do
       h.each{ |k,v| vm.metadata[k].to_s.should == v.to_s }
     end
   end
+end
+
+# tests w/o VBoxManage invocation
+describe "VBOX::VM" do
+
+  describe :expand_glob do
+    def _glob2arr glob
+      r = []
+      VBOX::VM.expand_glob(glob){ |x| r << x }
+      r
+    end
+
+    {
+      'xxx'                  => ['xxx'],
+      'xx*'                  => ['xx*'],
+      'a{1-2}'               => ['a1', 'a2'],
+      '{0-11}b'              => (0..11).map{ |x| "#{x}b" },
+      'a{0-999}b'            => (0..999).map{ |x| "a#{x}b" },
+      '{1-10}.{1-10}.{1-10}' => (0..999).map{ |x| ("%03i" % x).split('').join('.').gsub('0','10') }
+    }.each do |k,v|
+      it "should expand #{k.inspect}" do
+        _glob2arr(k).sort.should == v.sort
+      end
+    end
+  end
+
 end

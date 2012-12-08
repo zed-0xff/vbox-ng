@@ -26,7 +26,7 @@ def which(cmd)
 end
 
 RSpec.configure do |config|
-  config.before :all do
+  config.before :suite do
     if ENV['SIMULATE_VBOXMANAGE'] || !which('VBoxManage')
       puts "[*] VBoxManage executable not found in $PATH, using simulation..."
       VBoxManageSimulator.load
@@ -35,11 +35,23 @@ RSpec.configure do |config|
     end
   end
 
+  config.before :all do
+    VBoxManageSimulator.before_all
+  end
+
   config.before :each do
-    $current_test_description = example.full_description
+    VBoxManageSimulator.before_each example
+  end
+
+  config.after :each do
+    VBoxManageSimulator.after_each example
   end
 
   config.after :all do
+    VBoxManageSimulator.after_all
+  end
+
+  config.after :suite do
     VBoxManageSimulator.save if ENV['RECORD_VBOXMANAGE']
   end
 end

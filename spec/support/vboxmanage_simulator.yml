@@ -1,86 +1,247 @@
 ---
 log:
   ! '':
-  - d41d8cd98f00b204e9800998ecf8427e
-  - ed88ef9f06427bc20384d5530516ba46
-  - 93fff16516ec87507a6bac0d2e4f7147
+  - - - :showvminfo
+      - vbox-ng-test-vm
+      - --machinereadable
+    - d41d8cd98f00b204e9800998ecf8427e
+  - - - :createvm
+      - :name: vbox-ng-test-vm
+        :register: ''
+        :uuid: ae340307-f472-4d63-80e7-855fca6808cb
+    - ed88ef9f06427bc20384d5530516ba46
+  - - - :showvminfo
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - --machinereadable
+    - 1862786f699d10d7c0aea242627376d1
+  - - - :showvminfo
+      - vbox-ng-test-vm2
+      - --machinereadable
+    - 30e77bc3a7fd09810a587d5c489d41db
+  - - - :unregistervm
+      - 1a456021-2a41-4545-9f11-18f51b81ab6f
+      - --delete
+    - d41d8cd98f00b204e9800998ecf8427e
+  - - - :showvminfo
+      - vbox-ng-test-vm
+      - --machinereadable
+    - a4421007bf6bd48152900e2d051cc429
+  - - - :unregistervm
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - --delete
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM all() returns array:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM all() returns array of VBOX::VM:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM first returns VBOX::VM:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM find finds VM by name:
-  - 93fff16516ec87507a6bac0d2e4f7147
+  - - - :showvminfo
+      - vbox-ng-test-vm
+      - --machinereadable
+    - 1862786f699d10d7c0aea242627376d1
   VBOX::VM find finds VM by uuid:
-  - 93fff16516ec87507a6bac0d2e4f7147
+  - - - :showvminfo
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - --machinereadable
+    - 1862786f699d10d7c0aea242627376d1
   VBOX::VM find finds VM by {uuid}:
-  - 93fff16516ec87507a6bac0d2e4f7147
+  - - - :showvminfo
+      - ! '{ae340307-f472-4d63-80e7-855fca6808cb}'
+      - --machinereadable
+    - 1862786f699d10d7c0aea242627376d1
   VBOX::VM find finds nothing:
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :showvminfo
+      - blah-blah-blah-unexistant-vm-139487098347510
+      - --machinereadable
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM [] finds VM by name:
-  - 93fff16516ec87507a6bac0d2e4f7147
+  - - - :showvminfo
+      - vbox-ng-test-vm
+      - --machinereadable
+    - 1862786f699d10d7c0aea242627376d1
   VBOX::VM [] finds VM by uuid:
-  - 93fff16516ec87507a6bac0d2e4f7147
+  - - - :showvminfo
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - --machinereadable
+    - 1862786f699d10d7c0aea242627376d1
   VBOX::VM [] finds VM by {uuid}:
-  - 93fff16516ec87507a6bac0d2e4f7147
+  - - - :showvminfo
+      - ! '{ae340307-f472-4d63-80e7-855fca6808cb}'
+      - --machinereadable
+    - 1862786f699d10d7c0aea242627376d1
   VBOX::VM [] finds nothing:
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :showvminfo
+      - blah-blah-blah-unexistant-vm-139487098347510
+      - --machinereadable
+    - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM dir_size should be > 0:
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
+  - - - :showvminfo
+      - ! '{ae340207-f472-4d63-80e7-855fca6808cb}'
+      - --machinereadable
+    - 383eee36a66ce3ebb0887322ae705fc2
   VBOX::VM start! should respond to start!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM pause! should respond to pause!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM resume! should respond to resume!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM reset! should respond to reset!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM poweroff! should respond to poweroff!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM savestate! should respond to savestate!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM acpipowerbutton! should respond to acpipowerbutton!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM acpisleepbutton! should respond to acpisleepbutton!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM destroy! should respond to destroy!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM clone! should respond to clone!:
-  - f6d1a7690d7c8c925933f1431a28c6c7
-  - d41d8cd98f00b204e9800998ecf8427e
-  VBOX::VM expand_glob should expand "{1-10}.{1-10}.{1-10}":
-  - 3b380989c9a35b33b8ee9a7c39c56ec5
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :list
+      - :vms
+    - e11bf438f69f85c8b034b218aff50ddc
+  - - - :list
+      - :runningvms
+    - d41d8cd98f00b204e9800998ecf8427e
   VBOX::VM create should create VM:
-  - d41d8cd98f00b204e9800998ecf8427e
-  - 3d2f919338694dbf122285b3c3163079
-  - 398d96a8c6135897ee9a95b2c01d76c3
-  - 398d96a8c6135897ee9a95b2c01d76c3
+  - - - :showvminfo
+      - vbox-ng-test-vm2
+      - --machinereadable
+    - d41d8cd98f00b204e9800998ecf8427e
+  - - - :createvm
+      - :name: vbox-ng-test-vm2
+        :register: ''
+    - ad8802d4535419fa6b2c0aebe3f6ec53
+  - - - :showvminfo
+      - vbox-ng-test-vm2
+      - --machinereadable
+    - 1251279f67fe1d8f6121d470f2c09644
+  - - - :showvminfo
+      - 80385d79-fb24-439c-bb7a-286d5b6e8934
+      - --machinereadable
+    - 1251279f67fe1d8f6121d470f2c09644
   VBOX::VM set_var should set vars:
-  - 93fff16516ec87507a6bac0d2e4f7147
-  - d41d8cd98f00b204e9800998ecf8427e
-  - db29bfa43d6714059c52c94ad51183b8
-  - d41d8cd98f00b204e9800998ecf8427e
-  - 396b3648a61fb9eeee779eb90f913bdd
+  - - - :showvminfo
+      - vbox-ng-test-vm
+      - --machinereadable
+    - 1862786f699d10d7c0aea242627376d1
+  - - - :modifyvm
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - memory: '1024'
+        vram: '16'
+        cpus: '4'
+    - d41d8cd98f00b204e9800998ecf8427e
+  - - - :showvminfo
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - --machinereadable
+    - 3cf87e0b83b95e0e7422eb4111e6d484
+  - - - :modifyvm
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - memory: '512'
+        vram: '8'
+        cpus: '2'
+        acpi: 'off'
+    - d41d8cd98f00b204e9800998ecf8427e
+  - - - :showvminfo
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - --machinereadable
+    - a4421007bf6bd48152900e2d051cc429
   VBOX::VM set_vars should set vars:
-  - 396b3648a61fb9eeee779eb90f913bdd
-  - d41d8cd98f00b204e9800998ecf8427e
-  - db29bfa43d6714059c52c94ad51183b8
-  - d41d8cd98f00b204e9800998ecf8427e
-  - 396b3648a61fb9eeee779eb90f913bdd
-  - 396b3648a61fb9eeee779eb90f913bdd
-  - d41d8cd98f00b204e9800998ecf8427e
+  - - - :showvminfo
+      - vbox-ng-test-vm
+      - --machinereadable
+    - a4421007bf6bd48152900e2d051cc429
+  - - - :modifyvm
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - memory: '1024'
+        vram: '16'
+        cpus: '4'
+        acpi: 'on'
+    - d41d8cd98f00b204e9800998ecf8427e
+  - - - :showvminfo
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - --machinereadable
+    - 3cf87e0b83b95e0e7422eb4111e6d484
+  - - - :modifyvm
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - memory: '512'
+        vram: '8'
+        cpus: '2'
+        acpi: 'off'
+    - d41d8cd98f00b204e9800998ecf8427e
+  - - - :showvminfo
+      - ae340307-f472-4d63-80e7-855fca6808cb
+      - --machinereadable
+    - a4421007bf6bd48152900e2d051cc429
 responses:
   d41d8cd98f00b204e9800998ecf8427e: ''
   ed88ef9f06427bc20384d5530516ba46: ! 'Virtual machine ''vbox-ng-test-vm'' is created
@@ -89,7 +250,7 @@ responses:
     UUID: ae340307-f472-4d63-80e7-855fca6808cb
 
     Settings file: ''/home/zed/VirtualBox VMs/vbox-ng-test-vm/vbox-ng-test-vm.vbox'''
-  93fff16516ec87507a6bac0d2e4f7147: ! 'name="vbox-ng-test-vm"
+  1862786f699d10d7c0aea242627376d1: ! 'name="vbox-ng-test-vm"
 
     groups="/"
 
@@ -153,7 +314,7 @@ responses:
 
     VMState="poweroff"
 
-    VMStateChangeTime="2012-12-08T13:29:43.013000000"
+    VMStateChangeTime="2012-12-08T17:50:49.111000000"
 
     monitorcount=1
 
@@ -224,7 +385,7 @@ responses:
     VRDEClients=0
 
     GuestMemoryBalloon=0'
-  f6d1a7690d7c8c925933f1431a28c6c7: ! '"xp" {df193aad-f295-4398-9497-7677ba7d3ab8}
+  e11bf438f69f85c8b034b218aff50ddc: ! '"xp" {df193aad-f295-4398-9497-7677ba7d3ab8}
 
     "usb boot test" {e0a8e0c0-e68a-4f52-ac9f-b40820423e6d}
 
@@ -264,16 +425,211 @@ responses:
 
     "foo" {79f57c49-c9b4-4a4b-8331-57ffd5aee94b}
 
-    "vbox-ng-test-vm2" {6dc098f4-177d-4503-bad0-b84b2f81082c}
+    "vbox-ng-test-vm2" {1a456021-2a41-4545-9f11-18f51b81ab6f}
 
     "vbox-ng-test-vm" {ae340307-f472-4d63-80e7-855fca6808cb}'
-  3b380989c9a35b33b8ee9a7c39c56ec5: ! 'name="vbox-ng-test-vm2"
+  383eee36a66ce3ebb0887322ae705fc2: ! 'name="d0"
+
+    groups="/"
+
+    ostype="Debian (64 bit)"
+
+    UUID="ae340207-f472-4d63-80e7-855fca6808cb"
+
+    CfgFile="/home/zed/VirtualBox VMs/d0/d0.vbox"
+
+    SnapFldr="/home/zed/VirtualBox VMs/d0/Snapshots"
+
+    LogFldr="/home/zed/VirtualBox VMs/d0/Logs"
+
+    hardwareuuid="ae340207-f472-4d63-80e7-855fca6808cb"
+
+    memory=384
+
+    pagefusion="off"
+
+    vram=12
+
+    cpuexecutioncap=100
+
+    hpet="off"
+
+    chipset="piix3"
+
+    firmware="BIOS"
+
+    cpus=1
+
+    synthcpu="off"
+
+    bootmenu="messageandmenu"
+
+    boot1="floppy"
+
+    boot2="dvd"
+
+    boot3="disk"
+
+    boot4="none"
+
+    acpi="on"
+
+    ioapic="on"
+
+    pae="off"
+
+    Time offset=0rtcuseutc="on"
+
+    hwvirtex="on"
+
+    hwvirtexexcl="on"
+
+    nestedpaging="on"
+
+    largepages="off"
+
+    vtxvpid="on"
+
+    VMState="poweroff"
+
+    VMStateChangeTime="2012-12-05T15:59:59.000000000"
+
+    monitorcount=1
+
+    accelerate3d="off"
+
+    accelerate2dvideo="off"
+
+    teleporterenabled="off"
+
+    teleporterport=0
+
+    teleporteraddress=""
+
+    teleporterpassword=""
+
+    tracing-enabled="off"
+
+    tracing-allow-vm-access="off"
+
+    tracing-config=""
+
+    autostart-enabled="off"
+
+    autostart-delay=0
+
+    storagecontrollername0="IDE"
+
+    storagecontrollertype0="PIIX4"
+
+    storagecontrollerinstance0="0"
+
+    storagecontrollermaxportcount0="2"
+
+    storagecontrollerportcount0="2"
+
+    storagecontrollerbootable0="on"
+
+    storagecontrollername1="SATA"
+
+    storagecontrollertype1="IntelAhci"
+
+    storagecontrollerinstance1="0"
+
+    storagecontrollermaxportcount1="30"
+
+    storagecontrollerportcount1="1"
+
+    storagecontrollerbootable1="on"
+
+    "IDE-0-0"="none"
+
+    "IDE-0-1"="none"
+
+    "IDE-1-0"="emptydrive"
+
+    "IDE-IsEjected"="off"
+
+    "IDE-1-1"="none"
+
+    "SATA-0-0"="/home/zed/VirtualBox VMs/d0/Snapshots/{89614af7-1a48-499e-831e-900cc9d8bc44}.vdi"
+
+    "SATA-ImageUUID-0-0"="89614af7-1a48-499e-831e-900cc9d8bc44"
+
+    bridgeadapter1="eth0"
+
+    macaddress1="DEC0DE000000"
+
+    cableconnected1="on"
+
+    nic1="bridged"
+
+    nictype1="82540EM"
+
+    nicspeed1="0"
+
+    nic2="none"
+
+    nic3="none"
+
+    nic4="none"
+
+    nic5="none"
+
+    nic6="none"
+
+    nic7="none"
+
+    nic8="none"
+
+    hidpointing="usbtablet"
+
+    hidkeyboard="ps2kbd"
+
+    uart1="off"
+
+    uart2="off"
+
+    lpt1="off"
+
+    lpt2="off"
+
+    audio="none"
+
+    clipboard="disabled"
+
+    draganddrop="disabled"
+
+    vrde="off"
+
+    usb="on"
+
+    ehci="on"
+
+    VRDEActiveConnection="off"
+
+    VRDEClients=0
+
+    GuestMemoryBalloon=0
+
+    SnapshotName="for d1"
+
+    SnapshotUUID="0d8f305c-e896-408f-8894-0489bf5d053a"
+
+    SnapshotName-1="for d1"
+
+    SnapshotUUID-1="b339522d-9d66-49c1-86a2-f91c523e5a21"
+
+    SnapshotName-1-1="noswap"
+
+    SnapshotUUID-1-1="41e1df14-92f0-4680-a517-0a8ba9deb8f3"'
+  30e77bc3a7fd09810a587d5c489d41db: ! 'name="vbox-ng-test-vm2"
 
     groups="/"
 
     ostype="Other/Unknown"
 
-    UUID="6dc098f4-177d-4503-bad0-b84b2f81082c"
+    UUID="1a456021-2a41-4545-9f11-18f51b81ab6f"
 
     CfgFile="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/vbox-ng-test-vm2.vbox"
 
@@ -281,7 +637,7 @@ responses:
 
     LogFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/Logs"
 
-    hardwareuuid="6dc098f4-177d-4503-bad0-b84b2f81082c"
+    hardwareuuid="1a456021-2a41-4545-9f11-18f51b81ab6f"
 
     memory=128
 
@@ -331,7 +687,7 @@ responses:
 
     VMState="poweroff"
 
-    VMStateChangeTime="2012-12-08T13:29:32.000000000"
+    VMStateChangeTime="2012-12-08T17:50:40.000000000"
 
     monitorcount=1
 
@@ -402,19 +758,19 @@ responses:
     VRDEClients=0
 
     GuestMemoryBalloon=0'
-  3d2f919338694dbf122285b3c3163079: ! 'Virtual machine ''vbox-ng-test-vm2'' is created
+  ad8802d4535419fa6b2c0aebe3f6ec53: ! 'Virtual machine ''vbox-ng-test-vm2'' is created
     and registered.
 
-    UUID: 4b8eec71-4028-480d-bef0-473d06e2d501
+    UUID: 80385d79-fb24-439c-bb7a-286d5b6e8934
 
     Settings file: ''/home/zed/VirtualBox VMs/vbox-ng-test-vm2/vbox-ng-test-vm2.vbox'''
-  398d96a8c6135897ee9a95b2c01d76c3: ! 'name="vbox-ng-test-vm2"
+  1251279f67fe1d8f6121d470f2c09644: ! 'name="vbox-ng-test-vm2"
 
     groups="/"
 
     ostype="Other/Unknown"
 
-    UUID="4b8eec71-4028-480d-bef0-473d06e2d501"
+    UUID="80385d79-fb24-439c-bb7a-286d5b6e8934"
 
     CfgFile="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/vbox-ng-test-vm2.vbox"
 
@@ -422,7 +778,7 @@ responses:
 
     LogFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/Logs"
 
-    hardwareuuid="4b8eec71-4028-480d-bef0-473d06e2d501"
+    hardwareuuid="80385d79-fb24-439c-bb7a-286d5b6e8934"
 
     memory=128
 
@@ -472,7 +828,7 @@ responses:
 
     VMState="poweroff"
 
-    VMStateChangeTime="2012-12-08T13:29:44.994000000"
+    VMStateChangeTime="2012-12-08T17:50:50.305000000"
 
     monitorcount=1
 
@@ -543,7 +899,7 @@ responses:
     VRDEClients=0
 
     GuestMemoryBalloon=0'
-  db29bfa43d6714059c52c94ad51183b8: ! 'name="vbox-ng-test-vm"
+  3cf87e0b83b95e0e7422eb4111e6d484: ! 'name="vbox-ng-test-vm"
 
     groups="/"
 
@@ -607,7 +963,7 @@ responses:
 
     VMState="poweroff"
 
-    VMStateChangeTime="2012-12-08T13:29:43.013000000"
+    VMStateChangeTime="2012-12-08T17:50:49.111000000"
 
     monitorcount=1
 
@@ -678,7 +1034,7 @@ responses:
     VRDEClients=0
 
     GuestMemoryBalloon=0'
-  396b3648a61fb9eeee779eb90f913bdd: ! 'name="vbox-ng-test-vm"
+  a4421007bf6bd48152900e2d051cc429: ! 'name="vbox-ng-test-vm"
 
     groups="/"
 
@@ -742,7 +1098,7 @@ responses:
 
     VMState="poweroff"
 
-    VMStateChangeTime="2012-12-08T13:29:43.013000000"
+    VMStateChangeTime="2012-12-08T17:50:49.111000000"
 
     monitorcount=1
 
