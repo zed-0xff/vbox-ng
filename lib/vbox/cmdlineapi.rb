@@ -225,7 +225,8 @@ module VBOX
 
     def take_snapshot vm_name, params = {}
       vboxmanage "snapshot", vm_name, "take", params[:name] || "noname"
-      exit 1 unless success?      get_snapshots(vm_name).last
+      exit 1 unless success?
+      get_snapshots(vm_name).last
     end
 
     def _name2macpart name
@@ -260,12 +261,10 @@ module VBOX
         when 'last'
           get_snapshots(old_vm_name).last
         else
-          puts "[!] please gimme --snapshot=LAST OR --snapshot=NEW option"
-          exit 1
+          raise "no :snapshot param"
         end
       unless snapshot
-        puts "[!] failed to get snapshot, cannot continue".red
-        exit 1
+        raise "failed to get snapshot"
       end
 
       args[:options]  = :link

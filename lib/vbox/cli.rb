@@ -266,9 +266,33 @@ module VBOX
     end
     alias :vm_cmd_stop :vm_cmd_poweroff
 
-    def vm_cmd_clone
-      # TODO: page fusion
+    # ACPI 'Power' Button
+    def vm_cmd_acpipowerbutton vm
+      vm.acpipowerbutton!
     end
+
+    # ACPI 'Sleep' Button
+    def vm_cmd_acpisleepbutton vm
+      vm.acpisleepbutton!
+    end
+
+    # clone VM
+    def vm_cmd_clone vm
+      # TODO: page fusion
+      unless @options[:snapshot]
+        puts "[!] please gimme --snapshot=LAST OR --snapshot=NEW option".red
+        exit 1
+      end
+      vm.clone! @options
+    end
+
+    # manage VM snapshots
+    def vm_cmd_snapshots vm, *args
+      vm.snapshots.each do |s|
+        printf "%s  %s\n", s.uuid, s.name
+      end
+    end
+    alias :vm_cmd_snapshot :vm_cmd_snapshots
 
     def run
       parse_argv

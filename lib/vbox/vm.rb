@@ -116,6 +116,10 @@ module VBOX
       metadata['memory'].to_i
     end
 
+    def snapshots
+      VBOX.api.get_snapshots(uuid||name)
+    end
+
     class << self
       def all
         VBOX.api.list_vms :include_state => true
