@@ -41,7 +41,7 @@ Commandline usage
     	vbox -v                        - list VMs with memory and dir sizes
     	vbox "d{1-10}" list            - list only VMs named 'd1','d2','d3',...,'d10'
     	vbox "test*" start             - start VMs which name starts with 'test'
-    	vbox "v[ace]" cpus=2           - set 'number of cpus'=2 on VMs named 'va','vc','ve'
+    	vbox "v[ace]" cpus=2 acpi=on   - set number of cpus & ACPI on VMs named 'va','vc','ve'
     	vbox d0                        - list all parameters of VM named 'd0'
     	vbox d0 clone -c 10 -S last    - make 10 new linked clones of vm 'd0' using the
     	                                 latest hdd snapshot, if any
