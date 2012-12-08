@@ -31,8 +31,15 @@ class VBoxManageSimulator
       return if @mode != :replay
 
       Open3.should_not_receive(:popen3)
-      Kernel.should_not_receive(:system)
-      Kernel.should_not_receive(:`)
+      Object.any_instance.should_not_receive(:system)
+      #Object.any_instance.should_not_receive(:`)
+      Object.any_instance.stub(:`) do |cmdline|
+        if cmdline =~ /^du /
+          "99\t."
+        else
+          raise "[!] unemulated cmdline #{cmdline.inspect}"
+        end
+      end
 
       Array(@log[@current_test_description]).each do |args,md5|
         puts "[d] WANT: #{args.inspect}" if @debug
