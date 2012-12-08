@@ -32,7 +32,7 @@ PLATFORMS
 
 DEPENDENCIES
   awesome_print (~> 1.1.0)
-  bundler (~> 1.0.0)
+  bundler (>= 1.0.0)
   jeweler (~> 1.8.4)
   rspec (~> 2.12.0)
   simplecov
