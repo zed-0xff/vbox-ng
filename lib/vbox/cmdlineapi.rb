@@ -194,12 +194,13 @@ module VBOX
     # d0   -> d1, d2, d3
     # d1   -> d1.1, d1.2, d1.3
     # d1.1 -> d1.1.1, d1.1.2, d1.1.3
+    # xx   -> xx.1, xx.2, xx.3
     def _gen_vm_name parent_name
       # try to guess new name
+      names = list_vms.map(&:name)
       numbers = parent_name.scan /\d+/
       if numbers.any?
         lastnum = numbers.last
-        names = list_vms.map(&:name)
         if lastnum.to_i == 0
           # d0 -> d1, d2, d3
           newnum = lastnum.to_i + 1
@@ -218,6 +219,14 @@ module VBOX
             return newname unless names.include?(newname)
             newnum += 1
           end
+        end
+      else
+        # xx -> xx.1, xx.2, xx.3
+        newnum = 1
+        while true
+          newname = "#{parent_name}.#{newnum}"
+          return newname unless names.include?(newname)
+          newnum += 1
         end
       end
       nil
@@ -251,7 +260,7 @@ module VBOX
 
     def _clone old_vm_name, params
       args = {}
-      if new_vm_name = params['name'] || _gen_vm_name(old_vm_name)
+      if new_vm_name = params[:name] || _gen_vm_name(old_vm_name)
         args[:name] = new_vm_name
       end
 
@@ -282,7 +291,7 @@ module VBOX
             new_automac = _name2macpart(new_vm_name)
             new_mac = old_mac[0,old_mac.size-new_automac.size] + new_automac
             puts "[.] new #{k}=#{new_mac}"
-            modify new_vm_name, k, new_mac, :quiet => true
+            modify new_vm_name, k => new_mac
           end
         end
       end
@@ -290,7 +299,8 @@ module VBOX
     end
 
     def modify vm, vars
-      vboxmanage :modifyvm, vm.uuid || vm.name, vars
+      id = vm.is_a?(VM) ? (vm.uuid || vm.name) : vm.to_s
+      vboxmanage :modifyvm, id, vars
       success?
     end
 

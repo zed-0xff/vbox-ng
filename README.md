@@ -25,15 +25,14 @@ Commandline usage
     	acpipowerbutton, acpisleepbutton, clone, delete, show, snapshots
     
     OPTIONS:
-    	-g, --[no-]glob                  (default: auto) assume <vm_name> is a wildcard,
-    	                                 and run on multiple VMs.
-    	                                 All glob(7) patterns like *,?,[a-z] are supported
-    	                                 plus additional pattern {1-20} which matches
-    	                                 a sequence of numbers: 1,2,3,...,19,20
+    	-g, --[no-]glob                  assume <vm_name> is a wildcard & run on multiple VMs.
+    	                                 All glob(7) patterns are supported plus additional
+    	                                 pattern "{1-20}" - expands to a sequence: 1,2,3,...,19,20
     	-n, --dry-run                    do not change anything, just print commands to be invoked
     	-v, --verbose                    increase verbosity
-    	-c, --clones N                   clone: make N clones
+    	-N, --clones N                   clone: make N clones
     	-S, --snapshot MODE              clone: use LAST shapshot or make NEW
+    	    --name NAME                  clone: name for the clone VM
     	-H, --headless                   start: start VM in headless mode
     	-h, --help                       show this message
     

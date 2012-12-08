@@ -79,10 +79,9 @@ module VBOX
         opts.summary_indent = "\t"
 
         opts.on "-g", "--[no-]glob",
-        "(default: auto) assume <vm_name> is a wildcard,",
-        "and run on multiple VMs.",
-        "All glob(7) patterns like *,?,[a-z] are supported",
-        "plus additional pattern {1-20} which matches","a sequence of numbers: 1,2,3,...,19,20" do |x|
+        "assume <vm_name> is a wildcard & run on multiple VMs.",
+        "All glob(7) patterns are supported plus additional",
+        "pattern \"{1-20}\" - expands to a sequence: 1,2,3,...,19,20" do |x|
           @options[:multiple] = x
         end
         opts.on "-n", "--dry-run", "do not change anything, just print commands to be invoked" do
@@ -92,12 +91,15 @@ module VBOX
           @options[:verbose] ||= 0
           @options[:verbose] += 1
         end
-        opts.on "-c", "--clones N", Integer, "clone: make N clones" do |x|
+        opts.on "-N", "--clones N", Integer, "clone: make N clones" do |x|
           @options[:clones] = x
         end
         a = 'new last take make'.split.map{ |x| [x, x.upcase] }.flatten
         opts.on "-S", "--snapshot MODE", a, "clone: use LAST shapshot or make NEW" do |x|
           @options[:snapshot] = x.downcase
+        end
+        opts.on "--name NAME", "clone: name for the clone VM" do |x|
+          @options[:name] = x
         end
         opts.on "-H", "--headless", "start: start VM in headless mode" do
           @options[:headless] = true
