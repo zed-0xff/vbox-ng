@@ -1,0 +1,815 @@
+---
+log:
+  ! '':
+  - d41d8cd98f00b204e9800998ecf8427e
+  - ed88ef9f06427bc20384d5530516ba46
+  - 93fff16516ec87507a6bac0d2e4f7147
+  VBOX::VM all() returns array:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM all() returns array of VBOX::VM:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM first returns VBOX::VM:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM find finds VM by name:
+  - 93fff16516ec87507a6bac0d2e4f7147
+  VBOX::VM find finds VM by uuid:
+  - 93fff16516ec87507a6bac0d2e4f7147
+  VBOX::VM find finds VM by {uuid}:
+  - 93fff16516ec87507a6bac0d2e4f7147
+  VBOX::VM find finds nothing:
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM [] finds VM by name:
+  - 93fff16516ec87507a6bac0d2e4f7147
+  VBOX::VM [] finds VM by uuid:
+  - 93fff16516ec87507a6bac0d2e4f7147
+  VBOX::VM [] finds VM by {uuid}:
+  - 93fff16516ec87507a6bac0d2e4f7147
+  VBOX::VM [] finds nothing:
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM start! should respond to start!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM pause! should respond to pause!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM resume! should respond to resume!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM reset! should respond to reset!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM poweroff! should respond to poweroff!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM savestate! should respond to savestate!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM acpipowerbutton! should respond to acpipowerbutton!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM acpisleepbutton! should respond to acpisleepbutton!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM destroy! should respond to destroy!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM clone! should respond to clone!:
+  - f6d1a7690d7c8c925933f1431a28c6c7
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM expand_glob should expand "{1-10}.{1-10}.{1-10}":
+  - 3b380989c9a35b33b8ee9a7c39c56ec5
+  - d41d8cd98f00b204e9800998ecf8427e
+  VBOX::VM create should create VM:
+  - d41d8cd98f00b204e9800998ecf8427e
+  - 3d2f919338694dbf122285b3c3163079
+  - 398d96a8c6135897ee9a95b2c01d76c3
+  - 398d96a8c6135897ee9a95b2c01d76c3
+  VBOX::VM set_var should set vars:
+  - 93fff16516ec87507a6bac0d2e4f7147
+  - d41d8cd98f00b204e9800998ecf8427e
+  - db29bfa43d6714059c52c94ad51183b8
+  - d41d8cd98f00b204e9800998ecf8427e
+  - 396b3648a61fb9eeee779eb90f913bdd
+  VBOX::VM set_vars should set vars:
+  - 396b3648a61fb9eeee779eb90f913bdd
+  - d41d8cd98f00b204e9800998ecf8427e
+  - db29bfa43d6714059c52c94ad51183b8
+  - d41d8cd98f00b204e9800998ecf8427e
+  - 396b3648a61fb9eeee779eb90f913bdd
+  - 396b3648a61fb9eeee779eb90f913bdd
+  - d41d8cd98f00b204e9800998ecf8427e
+responses:
+  d41d8cd98f00b204e9800998ecf8427e: ''
+  ed88ef9f06427bc20384d5530516ba46: ! 'Virtual machine ''vbox-ng-test-vm'' is created
+    and registered.
+
+    UUID: ae340307-f472-4d63-80e7-855fca6808cb
+
+    Settings file: ''/home/zed/VirtualBox VMs/vbox-ng-test-vm/vbox-ng-test-vm.vbox'''
+  93fff16516ec87507a6bac0d2e4f7147: ! 'name="vbox-ng-test-vm"
+
+    groups="/"
+
+    ostype="Other/Unknown"
+
+    UUID="ae340307-f472-4d63-80e7-855fca6808cb"
+
+    CfgFile="/home/zed/VirtualBox VMs/vbox-ng-test-vm/vbox-ng-test-vm.vbox"
+
+    SnapFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm/Snapshots"
+
+    LogFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm/Logs"
+
+    hardwareuuid="ae340307-f472-4d63-80e7-855fca6808cb"
+
+    memory=128
+
+    pagefusion="off"
+
+    vram=8
+
+    cpuexecutioncap=100
+
+    hpet="off"
+
+    chipset="piix3"
+
+    firmware="BIOS"
+
+    cpus=1
+
+    synthcpu="off"
+
+    bootmenu="messageandmenu"
+
+    boot1="floppy"
+
+    boot2="dvd"
+
+    boot3="disk"
+
+    boot4="none"
+
+    acpi="on"
+
+    ioapic="off"
+
+    pae="on"
+
+    Time offset=0rtcuseutc="off"
+
+    hwvirtex="on"
+
+    hwvirtexexcl="on"
+
+    nestedpaging="on"
+
+    largepages="off"
+
+    vtxvpid="on"
+
+    VMState="poweroff"
+
+    VMStateChangeTime="2012-12-08T13:29:43.013000000"
+
+    monitorcount=1
+
+    accelerate3d="off"
+
+    accelerate2dvideo="off"
+
+    teleporterenabled="off"
+
+    teleporterport=0
+
+    teleporteraddress=""
+
+    teleporterpassword=""
+
+    tracing-enabled="off"
+
+    tracing-allow-vm-access="off"
+
+    tracing-config=""
+
+    autostart-enabled="off"
+
+    autostart-delay=0
+
+    nic1="none"
+
+    nic2="none"
+
+    nic3="none"
+
+    nic4="none"
+
+    nic5="none"
+
+    nic6="none"
+
+    nic7="none"
+
+    nic8="none"
+
+    hidpointing="ps2mouse"
+
+    hidkeyboard="ps2kbd"
+
+    uart1="off"
+
+    uart2="off"
+
+    lpt1="off"
+
+    lpt2="off"
+
+    audio="none"
+
+    clipboard="disabled"
+
+    draganddrop="disabled"
+
+    vrde="off"
+
+    usb="off"
+
+    ehci="off"
+
+    VRDEActiveConnection="off"
+
+    VRDEClients=0
+
+    GuestMemoryBalloon=0'
+  f6d1a7690d7c8c925933f1431a28c6c7: ! '"xp" {df193aad-f295-4398-9497-7677ba7d3ab8}
+
+    "usb boot test" {e0a8e0c0-e68a-4f52-ac9f-b40820423e6d}
+
+    "rescue" {b8711e6f-1c0b-40b9-951b-abfd15d14bfd}
+
+    "ubuntu 12.04.1" {261b7b5d-ba72-4972-ac0e-fee4f0933ed4}
+
+    "u1" {b0beb519-a70f-4b46-91c2-cba6531a8a18}
+
+    "u2" {0a0e6b5c-568f-40a7-a81a-68e0e8ef79c4}
+
+    "u3" {d8bbc26e-dd2b-4ec0-bc4a-732d61c331ff}
+
+    "rwthCTF2012 vulnbox final" {ceec9d79-004e-43cb-b1dd-38939a552c74}
+
+    "d0" {ae340207-f472-4d63-80e7-855fca6808cb}
+
+    "d1" {1e86e599-5910-4047-bdb3-6c6b88081eda}
+
+    "d2" {3ab8874b-c3de-4bc1-adca-c3396cc2e897}
+
+    "d3" {b97d344a-5c8a-4e1e-b380-03da9d5c8c0f}
+
+    "d4" {6997e5fb-935d-4c62-a3ad-6dc1bfb2948b}
+
+    "d5" {6f600fab-a7a6-4584-911a-84169cddf058}
+
+    "d6" {8d42de9a-0127-4cb8-bc52-fa745e80e66c}
+
+    "d7" {6af50a5f-96c6-42b2-9436-74d52a378bb2}
+
+    "d8" {6ada1923-a712-41ac-9fe1-df45c5bb0113}
+
+    "d9" {0adaf999-bb86-4009-8013-a3b43bfa6083}
+
+    "d10" {1f10c353-dd90-4c17-b90c-a95961cb143a}
+
+    "foo" {79f57c49-c9b4-4a4b-8331-57ffd5aee94b}
+
+    "vbox-ng-test-vm2" {6dc098f4-177d-4503-bad0-b84b2f81082c}
+
+    "vbox-ng-test-vm" {ae340307-f472-4d63-80e7-855fca6808cb}'
+  3b380989c9a35b33b8ee9a7c39c56ec5: ! 'name="vbox-ng-test-vm2"
+
+    groups="/"
+
+    ostype="Other/Unknown"
+
+    UUID="6dc098f4-177d-4503-bad0-b84b2f81082c"
+
+    CfgFile="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/vbox-ng-test-vm2.vbox"
+
+    SnapFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/Snapshots"
+
+    LogFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/Logs"
+
+    hardwareuuid="6dc098f4-177d-4503-bad0-b84b2f81082c"
+
+    memory=128
+
+    pagefusion="off"
+
+    vram=8
+
+    cpuexecutioncap=100
+
+    hpet="off"
+
+    chipset="piix3"
+
+    firmware="BIOS"
+
+    cpus=1
+
+    synthcpu="off"
+
+    bootmenu="messageandmenu"
+
+    boot1="floppy"
+
+    boot2="dvd"
+
+    boot3="disk"
+
+    boot4="none"
+
+    acpi="on"
+
+    ioapic="off"
+
+    pae="on"
+
+    Time offset=0rtcuseutc="off"
+
+    hwvirtex="on"
+
+    hwvirtexexcl="on"
+
+    nestedpaging="on"
+
+    largepages="off"
+
+    vtxvpid="on"
+
+    VMState="poweroff"
+
+    VMStateChangeTime="2012-12-08T13:29:32.000000000"
+
+    monitorcount=1
+
+    accelerate3d="off"
+
+    accelerate2dvideo="off"
+
+    teleporterenabled="off"
+
+    teleporterport=0
+
+    teleporteraddress=""
+
+    teleporterpassword=""
+
+    tracing-enabled="off"
+
+    tracing-allow-vm-access="off"
+
+    tracing-config=""
+
+    autostart-enabled="off"
+
+    autostart-delay=0
+
+    nic1="none"
+
+    nic2="none"
+
+    nic3="none"
+
+    nic4="none"
+
+    nic5="none"
+
+    nic6="none"
+
+    nic7="none"
+
+    nic8="none"
+
+    hidpointing="ps2mouse"
+
+    hidkeyboard="ps2kbd"
+
+    uart1="off"
+
+    uart2="off"
+
+    lpt1="off"
+
+    lpt2="off"
+
+    audio="none"
+
+    clipboard="disabled"
+
+    draganddrop="disabled"
+
+    vrde="off"
+
+    usb="off"
+
+    ehci="off"
+
+    VRDEActiveConnection="off"
+
+    VRDEClients=0
+
+    GuestMemoryBalloon=0'
+  3d2f919338694dbf122285b3c3163079: ! 'Virtual machine ''vbox-ng-test-vm2'' is created
+    and registered.
+
+    UUID: 4b8eec71-4028-480d-bef0-473d06e2d501
+
+    Settings file: ''/home/zed/VirtualBox VMs/vbox-ng-test-vm2/vbox-ng-test-vm2.vbox'''
+  398d96a8c6135897ee9a95b2c01d76c3: ! 'name="vbox-ng-test-vm2"
+
+    groups="/"
+
+    ostype="Other/Unknown"
+
+    UUID="4b8eec71-4028-480d-bef0-473d06e2d501"
+
+    CfgFile="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/vbox-ng-test-vm2.vbox"
+
+    SnapFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/Snapshots"
+
+    LogFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm2/Logs"
+
+    hardwareuuid="4b8eec71-4028-480d-bef0-473d06e2d501"
+
+    memory=128
+
+    pagefusion="off"
+
+    vram=8
+
+    cpuexecutioncap=100
+
+    hpet="off"
+
+    chipset="piix3"
+
+    firmware="BIOS"
+
+    cpus=1
+
+    synthcpu="off"
+
+    bootmenu="messageandmenu"
+
+    boot1="floppy"
+
+    boot2="dvd"
+
+    boot3="disk"
+
+    boot4="none"
+
+    acpi="on"
+
+    ioapic="off"
+
+    pae="on"
+
+    Time offset=0rtcuseutc="off"
+
+    hwvirtex="on"
+
+    hwvirtexexcl="on"
+
+    nestedpaging="on"
+
+    largepages="off"
+
+    vtxvpid="on"
+
+    VMState="poweroff"
+
+    VMStateChangeTime="2012-12-08T13:29:44.994000000"
+
+    monitorcount=1
+
+    accelerate3d="off"
+
+    accelerate2dvideo="off"
+
+    teleporterenabled="off"
+
+    teleporterport=0
+
+    teleporteraddress=""
+
+    teleporterpassword=""
+
+    tracing-enabled="off"
+
+    tracing-allow-vm-access="off"
+
+    tracing-config=""
+
+    autostart-enabled="off"
+
+    autostart-delay=0
+
+    nic1="none"
+
+    nic2="none"
+
+    nic3="none"
+
+    nic4="none"
+
+    nic5="none"
+
+    nic6="none"
+
+    nic7="none"
+
+    nic8="none"
+
+    hidpointing="ps2mouse"
+
+    hidkeyboard="ps2kbd"
+
+    uart1="off"
+
+    uart2="off"
+
+    lpt1="off"
+
+    lpt2="off"
+
+    audio="none"
+
+    clipboard="disabled"
+
+    draganddrop="disabled"
+
+    vrde="off"
+
+    usb="off"
+
+    ehci="off"
+
+    VRDEActiveConnection="off"
+
+    VRDEClients=0
+
+    GuestMemoryBalloon=0'
+  db29bfa43d6714059c52c94ad51183b8: ! 'name="vbox-ng-test-vm"
+
+    groups="/"
+
+    ostype="Other/Unknown"
+
+    UUID="ae340307-f472-4d63-80e7-855fca6808cb"
+
+    CfgFile="/home/zed/VirtualBox VMs/vbox-ng-test-vm/vbox-ng-test-vm.vbox"
+
+    SnapFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm/Snapshots"
+
+    LogFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm/Logs"
+
+    hardwareuuid="ae340307-f472-4d63-80e7-855fca6808cb"
+
+    memory=1024
+
+    pagefusion="off"
+
+    vram=16
+
+    cpuexecutioncap=100
+
+    hpet="off"
+
+    chipset="piix3"
+
+    firmware="BIOS"
+
+    cpus=4
+
+    synthcpu="off"
+
+    bootmenu="messageandmenu"
+
+    boot1="floppy"
+
+    boot2="dvd"
+
+    boot3="disk"
+
+    boot4="none"
+
+    acpi="on"
+
+    ioapic="off"
+
+    pae="on"
+
+    Time offset=0rtcuseutc="off"
+
+    hwvirtex="on"
+
+    hwvirtexexcl="on"
+
+    nestedpaging="on"
+
+    largepages="off"
+
+    vtxvpid="on"
+
+    VMState="poweroff"
+
+    VMStateChangeTime="2012-12-08T13:29:43.013000000"
+
+    monitorcount=1
+
+    accelerate3d="off"
+
+    accelerate2dvideo="off"
+
+    teleporterenabled="off"
+
+    teleporterport=0
+
+    teleporteraddress=""
+
+    teleporterpassword=""
+
+    tracing-enabled="off"
+
+    tracing-allow-vm-access="off"
+
+    tracing-config=""
+
+    autostart-enabled="off"
+
+    autostart-delay=0
+
+    nic1="none"
+
+    nic2="none"
+
+    nic3="none"
+
+    nic4="none"
+
+    nic5="none"
+
+    nic6="none"
+
+    nic7="none"
+
+    nic8="none"
+
+    hidpointing="ps2mouse"
+
+    hidkeyboard="ps2kbd"
+
+    uart1="off"
+
+    uart2="off"
+
+    lpt1="off"
+
+    lpt2="off"
+
+    audio="none"
+
+    clipboard="disabled"
+
+    draganddrop="disabled"
+
+    vrde="off"
+
+    usb="off"
+
+    ehci="off"
+
+    VRDEActiveConnection="off"
+
+    VRDEClients=0
+
+    GuestMemoryBalloon=0'
+  396b3648a61fb9eeee779eb90f913bdd: ! 'name="vbox-ng-test-vm"
+
+    groups="/"
+
+    ostype="Other/Unknown"
+
+    UUID="ae340307-f472-4d63-80e7-855fca6808cb"
+
+    CfgFile="/home/zed/VirtualBox VMs/vbox-ng-test-vm/vbox-ng-test-vm.vbox"
+
+    SnapFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm/Snapshots"
+
+    LogFldr="/home/zed/VirtualBox VMs/vbox-ng-test-vm/Logs"
+
+    hardwareuuid="ae340307-f472-4d63-80e7-855fca6808cb"
+
+    memory=512
+
+    pagefusion="off"
+
+    vram=8
+
+    cpuexecutioncap=100
+
+    hpet="off"
+
+    chipset="piix3"
+
+    firmware="BIOS"
+
+    cpus=2
+
+    synthcpu="off"
+
+    bootmenu="messageandmenu"
+
+    boot1="floppy"
+
+    boot2="dvd"
+
+    boot3="disk"
+
+    boot4="none"
+
+    acpi="off"
+
+    ioapic="off"
+
+    pae="on"
+
+    Time offset=0rtcuseutc="off"
+
+    hwvirtex="on"
+
+    hwvirtexexcl="on"
+
+    nestedpaging="on"
+
+    largepages="off"
+
+    vtxvpid="on"
+
+    VMState="poweroff"
+
+    VMStateChangeTime="2012-12-08T13:29:43.013000000"
+
+    monitorcount=1
+
+    accelerate3d="off"
+
+    accelerate2dvideo="off"
+
+    teleporterenabled="off"
+
+    teleporterport=0
+
+    teleporteraddress=""
+
+    teleporterpassword=""
+
+    tracing-enabled="off"
+
+    tracing-allow-vm-access="off"
+
+    tracing-config=""
+
+    autostart-enabled="off"
+
+    autostart-delay=0
+
+    nic1="none"
+
+    nic2="none"
+
+    nic3="none"
+
+    nic4="none"
+
+    nic5="none"
+
+    nic6="none"
+
+    nic7="none"
+
+    nic8="none"
+
+    hidpointing="ps2mouse"
+
+    hidkeyboard="ps2kbd"
+
+    uart1="off"
+
+    uart2="off"
+
+    lpt1="off"
+
+    lpt2="off"
+
+    audio="none"
+
+    clipboard="disabled"
+
+    draganddrop="disabled"
+
+    vrde="off"
+
+    usb="off"
+
+    ehci="off"
+
+    VRDEActiveConnection="off"
+
+    VRDEClients=0
+
+    GuestMemoryBalloon=0'

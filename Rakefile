@@ -39,6 +39,20 @@ end
 
 task :default => :spec
 
+namespace :spec do
+  desc "record VBoxManage simulation"
+  task :record do
+    ENV['RECORD_VBOXMANAGE'] = '1'
+    Rake::Task[:spec].invoke
+  end
+
+  desc "replay VBoxManage simulation"
+  task :replay do
+    ENV['SIMULATE_VBOXMANAGE'] = '1'
+    Rake::Task[:spec].execute
+  end
+end
+
 #require 'rdoc/task'
 #Rake::RDocTask.new do |rdoc|
 #  version = File.exist?('VERSION') ? File.read('VERSION') : ""

@@ -10,6 +10,36 @@ require 'vbox-ng'
 # in ./support/ and its subdirectories.
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
-RSpec.configure do |config|
+# Cross-platform way of finding an executable in the $PATH.
+#   which('ruby') #=> /usr/bin/ruby
+#
+# http://stackoverflow.com/questions/2108727/which-in-ruby-checking-if-program-exists-in-path-from-ruby
+def which(cmd)
+  exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+  ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
+    exts.each { |ext|
+      exe = "#{path}/#{cmd}#{ext}"
+      return exe if File.executable? exe
+    }
+  end
+  return nil
+end
 
+RSpec.configure do |config|
+  config.before :all do
+    if ENV['SIMULATE_VBOXMANAGE'] || !which('VBoxManage')
+      puts "[*] VBoxManage executable not found in $PATH, using simulation..."
+      VBoxManageSimulator.load
+    elsif ENV['RECORD_VBOXMANAGE']
+      VBoxManageSimulator.mode = :record
+    end
+  end
+
+  config.before :each do
+    $current_test_description = example.full_description
+  end
+
+  config.after :all do
+    VBoxManageSimulator.save if ENV['RECORD_VBOXMANAGE']
+  end
 end
